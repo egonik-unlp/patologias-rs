@@ -1,24 +1,20 @@
+use crate::entities::model::{NewDoctor, NewMaterial};
+use crate::impl_repository;
 use crate::{
     core::database::connection::DbPool,
     entities::model::{Doctor, Material},
 };
 
+use crate::core::database::schema::{doctors, materials};
+
 #[derive(Debug)]
-pub struct EntityRepository {
+pub struct DoctorRepository {
     pool: DbPool,
 }
 
-impl EntityRepository {
-    pub fn new(pool: DbPool) -> Self {
-        Self { pool }
-    }
-    pub async fn get_doctor(&self) -> anyhow::Result<Doctor> {
-        _ = &self.pool;
-        todo!()
-    }
-
-    pub async fn get_material(&self) -> anyhow::Result<Material> {
-        _ = &self.pool;
-        todo!()
-    }
+#[derive(Debug)]
+pub struct MaterialRepository {
+    pool: DbPool,
 }
+impl_repository!(DoctorRepository, Doctor, doctors, i32, NewDoctor);
+impl_repository!(MaterialRepository, Material, materials, i32, NewMaterial);

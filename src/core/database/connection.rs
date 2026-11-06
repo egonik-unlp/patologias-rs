@@ -5,7 +5,9 @@ use diesel::{
 };
 use dotenvy::dotenv;
 use std::time::Duration;
+
 pub type DbPool = Pool<ConnectionManager<PgConnection>>;
+
 pub fn get_connection_pool(database_url: String) -> DbPool {
     dotenv().ok();
 
@@ -41,6 +43,7 @@ where
         + Send,
     T: Send + 'static,
 {
+    use diesel::prelude::*;
     let pool = pool.clone();
     tokio::task::spawn_blocking(move || {
         let mut conn = pool.get().context("Getting conn from pool")?;
