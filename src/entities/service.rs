@@ -6,6 +6,7 @@ use crate::{
     },
 };
 
+#[derive(Debug, Clone)]
 pub struct EntitiesService {
     doctors_repository: DoctorRepository,
     materials_repository: MaterialRepository,

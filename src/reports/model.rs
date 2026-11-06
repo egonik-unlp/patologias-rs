@@ -55,6 +55,14 @@ pub struct Histopatologia {
     descripcion_macroscopica: Option<String>,
     diagnostio_histopatologico: Option<String>,
 }
+#[derive(Debug, Serialize, Deserialize, AsChangeset, Insertable)]
+#[diesel(table_name= crate::core::database::schema::histopatologias)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct NewHistopatologia {
+    study_id: i32,
+    descripcion_macroscopica: Option<String>,
+    diagnostio_histopatologico: Option<String>,
+}
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
 #[diesel(table_name= crate::core::database::schema::studies)]

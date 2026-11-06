@@ -7,14 +7,26 @@ use crate::{
 
 use crate::core::database::schema::{doctors, materials};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DoctorRepository {
     pool: DbPool,
 }
 
-#[derive(Debug)]
+impl DoctorRepository {
+    pub fn new(pool: DbPool) -> Self {
+        Self { pool }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct MaterialRepository {
     pool: DbPool,
+}
+
+impl MaterialRepository {
+    pub fn new(pool: DbPool) -> Self {
+        Self { pool }
+    }
 }
 impl_repository!(DoctorRepository, Doctor, doctors, i32, NewDoctor);
 impl_repository!(MaterialRepository, Material, materials, i32, NewMaterial);

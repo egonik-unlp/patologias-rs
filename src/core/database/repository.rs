@@ -8,22 +8,8 @@ pub trait DatabaseRepository: Sized {
     async fn delete(&self, id: Self::Id) -> anyhow::Result<()>;
     async fn update(&self, id: Self::Id, updateable: Self::New) -> anyhow::Result<()>;
     async fn read(&self, id: Self::Id) -> anyhow::Result<Self::Model>;
+    async fn read_all(&self) -> anyhow::Result<Vec<Self::Model>>;
 }
-// pub async fn create_thought(&self, input: ThoughtDto) -> anyhow::Result<()> {
-//     let insertable_thought: InsertableThought = input.clone().into();
-//     interact_with_connection(&self.pool, |conn| {
-//         let thought_id = insert_into(thoughts::table)
-//             .values(insertable_thought)
-//             .returning(thoughts::id)
-//             .get_result::<i32>(conn)?;
-//         let insertable_track = input.track.to_insertable(thought_id);
-//         insert_into(tracks::table)
-//             .values(insertable_track)
-//             .execute(conn)
-//             .map(|_| ())
-//     })
-//     .await
-// }
 
 /// ($model_repository:ty,$model:ty, $table: ident, $id:ty,$new:ty ,$changes:ty) => {
 #[macro_export]
@@ -59,6 +45,18 @@ macro_rules! impl_repository {
                 .await
             }
 
+            async fn read_all(&self) -> anyhow::Result<Vec<$model>> {
+                use diesel::prelude::*;
+                $crate::core::database::connection::interact_with_connection(
+                    &self.pool,
+                    move |conn| {
+                        $table::table
+                            .select(<$model>::as_select())
+                            .get_results(conn)
+                    },
+                )
+                .await
+            }
             async fn update(&self, id: $id, changes: $new) -> anyhow::Result<()> {
                 use diesel::prelude::*;
                 $crate::core::database::connection::interact_with_connection(
