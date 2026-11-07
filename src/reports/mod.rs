@@ -9,3 +9,5 @@ pub mod service;
 
 #[cfg(feature = "ssr")]
 pub mod render;
+
+pub mod component;

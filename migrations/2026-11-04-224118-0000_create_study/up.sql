@@ -4,7 +4,7 @@ Create type study_type as enum('histopatologia', 'citologia');
 
 CREATE TABLE IF NOT EXISTS studies (
   id serial primary key,
-  protocolo varchar(255) not null,
+  protocolo integer not null,
   fecha timestamp not null,
   tipo study_type not null,
   paciente varchar(255) not null,

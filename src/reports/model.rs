@@ -11,10 +11,12 @@ pub enum StudyDetail {
     Citologia(Citologia),
 }
 
-#[derive(Debug, Deserialize, Serialize, DbEnum)]
+#[derive(Debug, Deserialize, Serialize, DbEnum, Default)]
+#[serde(rename_all = "lowercase")]
 #[ExistingTypePath = "crate::core::database::schema::sql_types::StudyType"]
 pub enum StudyType {
     Histopatologia,
+    #[default]
     Citologia,
 }
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
@@ -33,7 +35,7 @@ pub struct Citologia {
     diag_citologias: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset)]
+#[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset, Default)]
 #[diesel(table_name= crate::core::database::schema::citologias)]
 pub struct NewCitologia {
     microflora: Option<String>,
@@ -53,15 +55,15 @@ pub struct Histopatologia {
     id: i32,
     study_id: i32,
     descripcion_macroscopica: Option<String>,
-    diagnostio_histopatologico: Option<String>,
+    diagnostico_histopatologico: Option<String>,
 }
-#[derive(Debug, Serialize, Deserialize, AsChangeset, Insertable)]
+#[derive(Debug, Serialize, Deserialize, AsChangeset, Insertable, Default)]
 #[diesel(table_name= crate::core::database::schema::histopatologias)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct NewHistopatologia {
-    study_id: i32,
     descripcion_macroscopica: Option<String>,
-    diagnostio_histopatologico: Option<String>,
+    #[serde(alias = "diagnostico_histopat")]
+    diagnostico_histopatologico: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
@@ -69,7 +71,7 @@ pub struct NewHistopatologia {
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Study {
     id: i32,
-    protocolo: String,
+    protocolo: i32,
     fecha: NaiveDateTime,
     tipo: StudyType,
     paciente: String,
@@ -77,14 +79,25 @@ pub struct Study {
     updated_at: NaiveDateTime,
 }
 
-#[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset)]
+#[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset, Default)]
 #[diesel(table_name= crate::core::database::schema::studies)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct NewStudy {
-    protocolo: String,
+    protocolo: i32,
+    #[serde(deserialize_with = "deserialize_fecha")]
     fecha: NaiveDateTime,
     tipo: StudyType,
     paciente: String,
-    created_at: NaiveDateTime,
-    updated_at: NaiveDateTime,
+}
+
+/// Accepts both ISO-8601 (`2008-01-02T21:21:46`) and the legacy
+/// space-separated format (`2008-01-02 21:21:46`).
+fn deserialize_fecha<'de, D>(deserializer: D) -> Result<NaiveDateTime, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    s.parse::<NaiveDateTime>()
+        .or_else(|_| NaiveDateTime::parse_from_str(&s, "%Y-%m-%d %H:%M:%S%.f"))
+        .map_err(serde::de::Error::custom)
 }

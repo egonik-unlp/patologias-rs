@@ -34,7 +34,7 @@ diesel::table! {
         id -> Int4,
         study_id -> Int4,
         descripcion_macroscopica -> Nullable<Text>,
-        diagnostio_histopatologico -> Nullable<Text>,
+        diagnostico_histopatologico -> Nullable<Text>,
     }
 }
 
@@ -51,8 +51,7 @@ diesel::table! {
 
     studies (id) {
         id -> Int4,
-        #[max_length = 255]
-        protocolo -> Varchar,
+        protocolo -> Int4,
         fecha -> Timestamp,
         tipo -> StudyType,
         #[max_length = 255]

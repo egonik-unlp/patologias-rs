@@ -1,4 +1,4 @@
-use crate::core::database::connection::DbPool;
+use crate::core::database::connection::{interact_with_connection, DbPool};
 use crate::core::database::repository::DatabaseRepository;
 use crate::core::database::schema::{citologias, histopatologias, studies};
 use crate::impl_repository;

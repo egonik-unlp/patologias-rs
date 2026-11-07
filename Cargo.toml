@@ -30,11 +30,17 @@ chrono = { version = "0.4.45", features = ["serde"] }
 
 diesel_migrations = { version = "2.3.2", optional = true }
 dotenvy = { version = "0.15.7", optional = true }
+
+
+csv = { version = "1.4.0" }
+serde_json = { version = "1.0.154", optional = true }
+
 [features]
 ssr = [
   "dep:axum",
   "dep:tokio",
   "dep:diesel",
+  "dep:serde_json",
   "dep:dotenvy",
   "dep:diesel-derive-enum",
   "dep:leptos_axum",
@@ -45,6 +51,7 @@ ssr = [
   "leptos_router/ssr",
 ]
 hydrate = ["leptos/hydrate", "dep:console_error_panic_hook", "dep:wasm-bindgen"]
+serde_json = ["dep:serde_json"]
 
 # Defines a size-optimized profile for the WASM bundle in release mode
 [profile.wasm-release]

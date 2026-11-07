@@ -16,7 +16,7 @@ create table if not exists histopatologias (
     id serial primary key,
   study_id serial not null,
   descripcion_macroscopica text,
-  diagnostio_histopatologico text,
+  diagnostico_histopatologico text,
 
   foreign key (study_id) references studies(id)
 )
