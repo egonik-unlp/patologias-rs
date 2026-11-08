@@ -28,5 +28,12 @@ impl MaterialRepository {
         Self { pool }
     }
 }
-impl_repository!(DoctorRepository, Doctor, doctors, i32, NewDoctor);
-impl_repository!(MaterialRepository, Material, materials, i32, NewMaterial);
+impl_repository!(sync, DoctorRepository, Doctor, doctors, i32, NewDoctor);
+impl_repository!(
+    sync,
+    MaterialRepository,
+    Material,
+    materials,
+    i32,
+    NewMaterial
+);

@@ -1,145 +1,211 @@
 #![allow(async_fn_in_trait)]
 
+use diesel::{Identifiable, Insertable, PgConnection, Queryable};
+
 pub trait DatabaseRepository: Sized {
     type Id: Clone + Copy;
-    type New;
-    type Model;
-    async fn create(&self, insertable: Self::New) -> anyhow::Result<()>;
-    async fn delete(&self, id: Self::Id) -> anyhow::Result<()>;
-    async fn update(&self, id: Self::Id, updateable: Self::New) -> anyhow::Result<()>;
-    async fn read(&self, id: Self::Id) -> anyhow::Result<Self::Model>;
-    async fn read_all(&self) -> anyhow::Result<Vec<Self::Model>>;
+    type Model: Identifiable + Queryable;
+    type New: Insertable<Model>;
+    fn create(
+        &self,
+        insertable: Self::New,
+        conn: &mut PgConnection,
+        parent_id: Option<Self::Id>,
+    ) -> anyhow::Result<Model>;
+    fn delete(&self, id: Self::Id, conn: &mut PgConnection) -> anyhow::Result<()>;
+    fn update(
+        &self,
+        id: Self::Id,
+        updateable: Self::New,
+        conn: &mut PgConnection,
+    ) -> anyhow::Result<Model>;
+    fn read(&self, id: Self::Id, conn: &mut PgConnection) -> anyhow::Result<Self::Model>;
+    fn read_all(&self, conn: &mut PgConnection) -> anyhow::Result<Vec<Self::Model>>;
 }
 
-/// ($model_repository:ty,$model:ty, $table: ident, $id:ty,$new:ty ,$changes:ty) => {
+// Uno por par
+pub trait AsyncLayerWithHierarchy<P, C>: DatabaseRepository
+where
+    P: Parent,
+    C: Child,
+{
+    type Parent = P;
+    type Child = C;
+
+    fn create(&self, parent: P, child: C, new: impl Insertable<P>) -> anyhow::Result<()>;
+    fn delete(&self, id: Self::Id, parent: P, child: C) -> anyhow::Result<()>;
+    fn update(
+        &self,
+        id: Self::Id,
+        parent: P,
+        child: C,
+        new: impl Insertable<P>,
+    ) -> anyhow::Result<()>;
+    fn read(&self, id: Self::Id, parent: P) -> anyhow::Result<Self::Model>;
+    fn read_all(&self) -> anyhow::Result<Vec<Self::Model>>;
+}
+
+pub trait AsyncLayer: DatabaseRepository {
+    fn create(&self, insertable: Self::New) -> anyhow::Result;
+    fn delete(&self, id: Self::Id, conn: &mut PgConnection) -> anyhow::Result<()>;
+    fn update(
+        &self,
+        id: Self::Id,
+        updateable: Self::New,
+        conn: &mut PgConnection,
+    ) -> anyhow::Result<()>;
+    fn read(&self, id: Self::Id, conn: &mut PgConnection) -> anyhow::Result<Self::Model>;
+    fn read_all(&self, conn: &mut PgConnection) -> anyhow::Result<Vec<Self::Model>>;
+}
+
+pub trait Parent {
+    fn get_id(&self) -> i32;
+    fn get_child(&self) -> impl Child;
+    fn get_child_id(&self) -> i32 {
+        self.get_child().get_id()
+    }
+}
+pub trait Child {
+    fn get_id(&mut self) -> i32;
+}
+
 #[macro_export]
 macro_rules! impl_repository {
-    ($model_repository:ty,$model:ty, $table: ident, $id:ty ,$new:ty ) => {
+    (@sync, $model_repository:ty,$model:ty, $table: ident, $id:ty ,$new:ty ) => {
         impl $crate::core::database::repository::DatabaseRepository for $model_repository {
             type Id = $id;
             type New = $new;
             type Model = $model;
 
-            async fn create(&self, new: $new) -> anyhow::Result<()> {
+            fn create(
+                &self,
+                mut new: $new,
+                conn: &mut diesel::prelude::PgConnection,
+                parent_id: Option<$id>
+            ) -> anyhow::Result<$model> {
                 use diesel::prelude::*;
-                $crate::core::database::connection::interact_with_connection(&self.pool, |conn| {
-                    diesel::insert_into($table::table)
-                        .values(new)
-                        .execute(conn)
-                        .map(|_| ())
-                })
-                .await
+
+                 match parent_id {
+                    Some(id) =>
+                 diesel::insert_into($table::table)
+                    .values((new, $table::study_id.eq(id)))
+                    .execute(conn)
+                    .map_err(Into::into)
+                     ,
+                    None =>
+                 diesel::insert_into($table::table)
+                    .values(new)
+                    .select(<$model>::as_select())
+                    .get_result(conn)
+                    .map_err(Into::into)
+                }
             }
-            async fn read(&self, id: $id) -> anyhow::Result<$model> {
+            fn read(
+                &self,
+                id: $id,
+                conn: &mut diesel::prelude::PgConnection,
+            ) -> anyhow::Result<$model> {
                 use diesel::prelude::*;
                 let id = id.clone();
-                $crate::core::database::connection::interact_with_connection(
-                    &self.pool,
-                    move |conn| {
-                        $table::table
-                            .find(id)
-                            .select(<$model>::as_select())
-                            .first(conn)
-                    },
-                )
-                .await
+                $table::table
+                    .find(id)
+                    .select(<$model>::as_select())
+                    .first(conn)
+                    .map_err(Into::into)
             }
 
-            async fn read_all(&self) -> anyhow::Result<Vec<$model>> {
+            fn read_all(
+                &self,
+                conn: &mut diesel::prelude::PgConnection,
+            ) -> anyhow::Result<Vec<$model>> {
                 use diesel::prelude::*;
-                $crate::core::database::connection::interact_with_connection(
-                    &self.pool,
-                    move |conn| {
-                        $table::table
-                            .select(<$model>::as_select())
-                            .get_results(conn)
-                    },
-                )
-                .await
+                $table::table
+                    .select(<$model>::as_select())
+                    .get_results(conn)
+                    .map_err(Into::into)
             }
-            async fn update(&self, id: $id, changes: $new) -> anyhow::Result<()> {
+            fn update(
+                &self,
+                id: $id,
+                changes: $new,
+                conn: &mut diesel::prelude::PgConnection,
+            ) -> anyhow::Result<()> {
                 use diesel::prelude::*;
-                $crate::core::database::connection::interact_with_connection(
-                    &self.pool,
-                    move |conn| {
-                        diesel::update($table::table.find(id))
-                            .set(changes)
-                            .returning(<$model>::as_returning())
-                            .execute(conn)
-                            .map(|_| ())
-                    },
-                )
-                .await
+                diesel::update($table::table.find(id))
+                    .set(changes)
+                    .returning(<$model>::as_returning())
+                    .get_result(conn)
+                    .map(|_| ())
+                    .map_err(Into::into)
             }
-            async fn delete(&self, id: $id) -> anyhow::Result<()> {
+            fn delete(
+                &self,
+                id: $id,
+                conn: &mut diesel::prelude::PgConnection,
+            ) -> anyhow::Result<()> {
                 use diesel::prelude::*;
-                $crate::core::database::connection::interact_with_connection(
-                    &self.pool,
-                    move |conn| {
-                        diesel::delete($table::table.find(id))
-                            .execute(conn)
-                            .map(|_| ())
-                    },
-                )
-                .await
+                diesel::delete($table::table.find(id))
+                    .execute(conn)
+                    .map(|_| ())
+                    .map_err(Into::into)
             }
         }
     };
-    // Es factible que tenga que definir otro trait, ya que perdes control fino, quiero borrar
-    // siempre todo? o quiero controlar uno por uno, que actualizo? que tipo seria?
-    ($model_repository:ty,$model:ty, $table: ident, $id:ty ,$new:ty, $dependency:ty ) => {
-        impl $crate::core::database::repository::DatabaseRepository for $model_repository {
-            type Id = $id;
-            type New = $new;
-            type Model = $model;
 
-            async fn create(&self, new: $new) -> anyhow::Result<()> {
+    (sync, $model_repository:ty,$model:ty, $table: ident, $id:ty ,$new:ty ) => {
+        impl_repository!(@sync, $model_repository,$model, $table , $id,$new);
+    };
+
+    ( async,  $model_repository:ty,$model:ty, $table: ident, $id:ty ,$new:ty  )  => {
+
+            impl_repository!(@sync, $model_repository,$model, $table  $id ,$new)
+
+    };
+    ( async,  $model_repository:ty,$model:ty, $table: ident, $id:ty ,$new:ty,  $parent: ty ,$(, $children:ty)* $(,)?)  => {
+
+            impl_repository!(@sync, $model_repository,$model, $table  $id ,$new)
+        impl $crate::core::database::repository::AsyncLayerWithHierarchy<$parent, *(
+        $children
+        ) >  for $model_repository {
+            type Parent = $parent;
+            type Child =  $($children)*;
+            async fn create(&self, parent: $parent, child: $($children)*, new: impl Insertable<$parent>) -> anyhow::Result<()> {
                 use diesel::prelude::*;
                 $crate::core::database::connection::interact_with_connection(&self.pool, |conn| {
-                    diesel::insert_into($table::table)
-                        .values(new)
-                        .execute(conn)
-                        .map(|_| ())
+                    let parent = parent.create(new, conn, None).context("Creating parent")?;
+                     child.create(parent.get_child(), conn, Some(parent.get_id())).context("Creating child").map(|_| () )
                 })
                 .await
             }
-            async fn read(&self, id: $id) -> anyhow::Result<$model> {
+            async fn read(&self, id: $id, parent: $parent) -> anyhow::Result<$model> {
                 use diesel::prelude::*;
                 let id = id.clone();
                 $crate::core::database::connection::interact_with_connection(
                     &self.pool,
                     move |conn| {
-                        $table::table
-                            .find(id)
-                            .select(<$model>::as_select())
-                            .first(conn)
+                        parent.read(id, conn)
                     },
                 )
                 .await
             }
-
-            async fn update(&self, id: $id, changes: $new) -> anyhow::Result<()> {
+            async fn update(&self, id: $id, parent: $parent, child :$($children)*, new: impl Insertable<$parent>) -> anyhow::Result<()> {
                 use diesel::prelude::*;
                 $crate::core::database::connection::interact_with_connection(
                     &self.pool,
                     move |conn| {
-                        diesel::update($table::table.find(id))
-                            .set(changes)
-                            .returning(<$model>::as_returning())
-                            .execute(conn)
-                            .map(|_| ())
+                        parent.update(id, new, conn).context("Updating parent")?;
+                        child.update(id, new.get_child(), conn).context("Updating child")
                     },
                 )
                 .await
             }
-            async fn delete(&self, id: $id) -> anyhow::Result<()> {
+            async fn delete(&self, id: $id, parent: $parent, child: $($children)*) -> anyhow::Result<()> {
                 use diesel::prelude::*;
                 $crate::core::database::connection::interact_with_connection(
                     &self.pool,
                     move |conn| {
-                        diesel::delete($table::table.find(id))
-                            .execute(conn)
-                            .map(|_| ())
+                        child.delete(parent.get_child_id(), conn).context("Deleting child")?;
+                        parent.delete(id, conn).context("Deleting parent")
                     },
                 )
                 .await
