@@ -2,7 +2,7 @@
 
 use diesel::{Identifiable, Insertable, PgConnection, Queryable};
 
-pub trait DatabaseRepository: Sized {
+trait DatabaseRepository: Sized {
     type Id: Clone + Copy;
     type Model: Identifiable + Queryable;
     type New: Insertable<Model>;
@@ -24,9 +24,8 @@ pub trait DatabaseRepository: Sized {
 }
 
 // Uno por par
-pub trait AsyncLayerWithHierarchy<P, C>: DatabaseRepository
+pub trait AsyncLayerWithHierarchy<C>: DatabaseRepository
 where
-    P: Parent,
     C: Child,
 {
     type Parent = P;
@@ -71,6 +70,9 @@ pub trait Child {
 
 #[macro_export]
 macro_rules! impl_repository {
+    (@repository, $model: ty ) => {
+        pub struct $model
+    };
     (@sync, $model_repository:ty,$model:ty, $table: ident, $id:ty ,$new:ty ) => {
         impl $crate::core::database::repository::DatabaseRepository for $model_repository {
             type Id = $id;
@@ -166,7 +168,7 @@ macro_rules! impl_repository {
             impl_repository!(@sync, $model_repository,$model, $table  $id ,$new)
         impl $crate::core::database::repository::AsyncLayerWithHierarchy<$parent, *(
         $children
-        ) >  for $model_repository {
+        ) >  for $model {
             type Parent = $parent;
             type Child =  $($children)*;
             async fn create(&self, parent: $parent, child: $($children)*, new: impl Insertable<$parent>) -> anyhow::Result<()> {
