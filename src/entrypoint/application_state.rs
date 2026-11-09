@@ -8,7 +8,7 @@ use crate::{
         service::EntitiesService,
     },
     reports::{
-        repository::{CitologiasRepository, HistopatologiasRepository, ReportsRepository},
+        repository::StudyRepository,
         service::ReportsService,
     },
 };
@@ -24,15 +24,9 @@ impl AppState {
     pub fn new(pool: DbPool, leptos_options: LeptosOptions) -> Self {
         let doctors_repository = DoctorRepository::new(pool.clone());
         let material_repository = MaterialRepository::new(pool.clone());
-        let histopatologias_repository = HistopatologiasRepository::new(pool.clone());
-        let citologias_repository = CitologiasRepository::new(pool.clone());
-        let reports_repository = ReportsRepository::new(pool.clone());
+        let studies_repository = StudyRepository::new(pool.clone());
         let entities_service = EntitiesService::new(doctors_repository, material_repository);
-        let reports_service = ReportsService::new(
-            reports_repository,
-            histopatologias_repository,
-            citologias_repository,
-        );
+        let reports_service = ReportsService::new(studies_repository);
         Self {
             leptos_options,
             entities_service,

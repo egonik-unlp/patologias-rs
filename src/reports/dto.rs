@@ -1,9 +1,6 @@
 use chrono::NaiveDateTime;
 
-use crate::{
-    core::database::repository::{Child, Parent, ParentWithChildNew},
-    reports::model::{NewCitologia, NewHistopatologia, NewStudy},
-};
+use crate::reports::model::{NewCitologia, NewHistopatologia};
 
 #[derive(Debug, Clone)]
 pub struct FullStudyDto {
@@ -52,7 +49,6 @@ impl From<CitologiaDto> for NewCitologia {
             compatible_con,
             sugerencia,
             diag_citologias,
-            study_id: None,
         }
     }
 }
@@ -72,7 +68,6 @@ impl From<HistopatologiaDto> for NewHistopatologia {
         Self {
             descripcion_macroscopica,
             diagnostico_histopatologico,
-            study_id: None,
         }
     }
 }
@@ -82,16 +77,4 @@ pub struct StudyDto {
     protocolo: i32,
     fecha: NaiveDateTime,
     paciente: String,
-}
-
-impl Child for StudyDetail {}
-impl Parent for StudyDto {}
-
-impl ParentWithChildNew for FullStudyDto {
-    fn get_child(&self) -> impl crate::core::database::repository::Child {
-        self.child.clone()
-    }
-    fn get_parent(&self) -> impl crate::core::database::repository::Parent {
-        self.parent.clone()
-    }
 }
