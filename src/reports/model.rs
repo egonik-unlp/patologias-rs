@@ -78,6 +78,8 @@ pub struct Study {
     fecha: NaiveDateTime,
     tipo: StudyType,
     paciente: String,
+    doctor_id: i32,
+    material_id: i32,
     created_at: NaiveDateTime,
     updated_at: NaiveDateTime,
 }
@@ -91,6 +93,13 @@ pub struct NewStudy {
     pub fecha: NaiveDateTime,
     pub tipo: StudyType,
     pub paciente: String,
+    // The CSV has doctor/material *names* (`medico`, `material`), not ids, so
+    // these default to 0 when deserializing; the loader must resolve the names
+    // to real ids before inserting.
+    #[serde(default)]
+    pub doctor_id: i32,
+    #[serde(default)]
+    pub material_id: i32,
 }
 
 /// Accepts both ISO-8601 (`2008-01-02T21:21:46`) and the legacy
