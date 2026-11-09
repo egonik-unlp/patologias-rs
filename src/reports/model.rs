@@ -24,6 +24,7 @@ pub enum StudyType {
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Citologia {
     id: i32,
+    study_id: i32,
     microflora: Option<String>,
     celulas_pavimentosas: Option<String>,
     celulas_metaplasicas: Option<String>,
@@ -38,15 +39,16 @@ pub struct Citologia {
 #[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset, Default)]
 #[diesel(table_name= crate::core::database::schema::citologias)]
 pub struct NewCitologia {
-    microflora: Option<String>,
-    celulas_pavimentosas: Option<String>,
-    celulas_metaplasicas: Option<String>,
-    leucocitos: Option<String>,
-    hematies: Option<String>,
-    celulas_endocervicales: Option<String>,
-    compatible_con: Option<String>,
-    sugerencia: Option<String>,
-    diag_citologias: Option<String>,
+    pub study_id: Option<i32>,
+    pub microflora: Option<String>,
+    pub celulas_pavimentosas: Option<String>,
+    pub celulas_metaplasicas: Option<String>,
+    pub leucocitos: Option<String>,
+    pub hematies: Option<String>,
+    pub celulas_endocervicales: Option<String>,
+    pub compatible_con: Option<String>,
+    pub sugerencia: Option<String>,
+    pub diag_citologias: Option<String>,
 }
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
 #[diesel(table_name= crate::core::database::schema::histopatologias)]
@@ -61,9 +63,10 @@ pub struct Histopatologia {
 #[diesel(table_name= crate::core::database::schema::histopatologias)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct NewHistopatologia {
-    descripcion_macroscopica: Option<String>,
+    pub study_id: Option<i32>,
+    pub descripcion_macroscopica: Option<String>,
     #[serde(alias = "diagnostico_histopat")]
-    diagnostico_histopatologico: Option<String>,
+    pub diagnostico_histopatologico: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
@@ -83,11 +86,11 @@ pub struct Study {
 #[diesel(table_name= crate::core::database::schema::studies)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct NewStudy {
-    protocolo: i32,
+    pub protocolo: i32,
     #[serde(deserialize_with = "deserialize_fecha")]
-    fecha: NaiveDateTime,
-    tipo: StudyType,
-    paciente: String,
+    pub fecha: NaiveDateTime,
+    pub tipo: StudyType,
+    pub paciente: String,
 }
 
 /// Accepts both ISO-8601 (`2008-01-02T21:21:46`) and the legacy
