@@ -70,13 +70,16 @@ macro_rules! impl_repository {
     (@repository, $model: ty ) => {
         pastey::paste!{
  #[derive(Debug, Clone)]
-            pub struct [<$model Repostory>] {
+            pub struct [<$model Repository>] {
                 pool: $crate::core::database::connection::DbPool
         }
-            impl [<$model Repostory>] {
-                fn new(pool: $crate::core::database::connection::DbPool) -> Self {
+            impl [<$model Repository>] {
+                pub fn new(pool: $crate::core::database::connection::DbPool) -> Self {
                 Self { pool }
         }
+                pub fn pool(&self) -> &$crate::core::database::connection::DbPool {
+                    &self.pool
+                }
         }
         }
     };
@@ -87,7 +90,7 @@ macro_rules! impl_repository {
     (@sync, $model:ident, $table:ident, $id:ty ,$new:ty ) => {
         pastey::paste!{
         impl_repository!(@repository, $model);
-        impl $crate::core::database::repository::DatabaseRepository for [<$model Repostory>] {
+        impl $crate::core::database::repository::DatabaseRepository for [<$model Repository>] {
             type Id = $id;
             type New = $new;
             type Model = $model;
@@ -101,6 +104,7 @@ macro_rules! impl_repository {
                 use diesel::prelude::*;
                  diesel::insert_into($table::table)
                     .values(new)
+                    .returning(<$model>::as_returning())
                     .get_result(conn)
                     .map_err(Into::into)
             }
@@ -159,7 +163,7 @@ macro_rules! impl_repository {
     (@sync, $model:ident, $table:ident, $id:ty ,$new:ty ,  $parent: ty $(, $children:ty)* $(,)?) => {
         pastey::paste!{
         impl_repository!(@repository, $model);
-        impl $crate::core::database::repository::DatabaseRepository for [<$model Repostory>] {
+        impl $crate::core::database::repository::DatabaseRepository for [<$model Repository>] {
             type Id = $id;
             type New = $new;
             type Model = $model;
@@ -246,36 +250,51 @@ macro_rules! impl_repository {
     ( async,  $model:ident, $table: ident, $id:ty ,$new:ty  )  => {
         impl_repository!(@sync, $model, $table,  $id ,$new);
     pastey::paste!{
-        impl $crate::core::database::repository::AsyncLayer for [<$model Repostory>]{
+        impl $crate::core::database::repository::AsyncLayer for [<$model Repository>]{
         async fn create(&self,insertable: $new) -> anyhow::Result<$model> {
-                $crate::core::database::connection::interact_with_connection(&self.pool, |conn| {
-                    self._create(insertable, conn, None).context("creating single")
+                let repo = self.clone();
+                $crate::core::database::connection::interact(&self.pool, move |conn| {
+                    use anyhow::Context;
+                    use $crate::core::database::repository::DatabaseRepository;
+                    repo._create(insertable, conn, None).context("creating single")
                 })
                 .await
         }
         async fn delete(&self, id:$id) -> anyhow::Result<()> {
-                $crate::core::database::connection::interact_with_connection(&self.pool, |conn| {
-                    self._delete(id, conn).context("deleting single").map(|_|())
+                let repo = self.clone();
+                $crate::core::database::connection::interact(&self.pool, move |conn| {
+                    use anyhow::Context;
+                    use $crate::core::database::repository::DatabaseRepository;
+                    repo._delete(id, conn).context("deleting single").map(|_|())
                 })
                 .await
         }
 
         async fn update(&self, id:$id, updateable: $new) -> anyhow::Result<$model> {
-                $crate::core::database::connection::interact_with_connection(&self.pool, |conn| {
-                    self._update(id, conn, updateable).context("updating single")
+                let repo = self.clone();
+                $crate::core::database::connection::interact(&self.pool, move |conn| {
+                    use anyhow::Context;
+                    use $crate::core::database::repository::DatabaseRepository;
+                    repo._update(id, updateable, conn).context("updating single")
                 })
                 .await
         }
 
         async fn read(&self, id:$id ) -> anyhow::Result<$model> {
-                $crate::core::database::connection::interact_with_connection(&self.pool, |conn| {
-                    self._read(id, conn ).context("updating single")
+                let repo = self.clone();
+                $crate::core::database::connection::interact(&self.pool, move |conn| {
+                    use anyhow::Context;
+                    use $crate::core::database::repository::DatabaseRepository;
+                    repo._read(id, conn ).context("updating single")
                 })
                 .await
         }
         async fn read_all(&self  ) -> anyhow::Result<Vec<$model>> {
-                $crate::core::database::connection::interact_with_connection(&self.pool, |conn| {
-                    self._read_all( conn ).context("updating single")
+                let repo = self.clone();
+                $crate::core::database::connection::interact(&self.pool, move |conn| {
+                    use anyhow::Context;
+                    use $crate::core::database::repository::DatabaseRepository;
+                    repo._read_all( conn ).context("updating single")
                 })
                 .await
         }
@@ -288,7 +307,7 @@ macro_rules! impl_repository {
             impl_repository!(@sync, $model, $table , $id ,$new, $parent, $($children,)*);
 
         pastey::paste!{
-       $( impl $crate::core::database::repository::AsyncLayerWithHierarchy for [<$model Repostory>]{
+       $( impl $crate::core::database::repository::AsyncLayerWithHierarchy for [<$model Repository>]{
             // type Parent = $parent;
             // type Child =  $children;
             async fn create(&self, parent: $parent, child: $children, new: impl diesel::prelude::Insertable<$parent>) -> anyhow::Result<()> {

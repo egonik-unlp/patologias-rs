@@ -1,4 +1,5 @@
 pub mod app;
+#[cfg(feature = "ssr")]
 pub mod core;
 pub mod entities;
 pub mod entrypoint;

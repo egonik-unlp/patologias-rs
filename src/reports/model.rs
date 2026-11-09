@@ -6,9 +6,26 @@ use diesel::{
 use diesel_derive_enum::DbEnum;
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug)]
 pub enum StudyDetail {
     Histopatologia(Histopatologia),
     Citologia(Citologia),
+}
+
+/// The child row of a new study. Its variant decides the study's `tipo`.
+#[derive(Debug)]
+pub enum NewStudyDetail {
+    Histopatologia(NewHistopatologia),
+    Citologia(NewCitologia),
+}
+
+impl NewStudyDetail {
+    pub fn tipo(&self) -> StudyType {
+        match self {
+            Self::Histopatologia(_) => StudyType::Histopatologia,
+            Self::Citologia(_) => StudyType::Citologia,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, DbEnum, Default)]
@@ -78,8 +95,16 @@ pub struct Study {
     fecha: NaiveDateTime,
     tipo: StudyType,
     paciente: String,
+    doctor_id: i32,
+    material_id: i32,
     created_at: NaiveDateTime,
     updated_at: NaiveDateTime,
+}
+
+impl Study {
+    pub fn id(&self) -> i32 {
+        self.id
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset, Default)]
@@ -91,6 +116,13 @@ pub struct NewStudy {
     pub fecha: NaiveDateTime,
     pub tipo: StudyType,
     pub paciente: String,
+    // The CSV has doctor/material *names* (`medico`, `material`), not ids, so
+    // these default to 0 when deserializing; the loader must resolve the names
+    // to real ids before inserting.
+    #[serde(default)]
+    pub doctor_id: i32,
+    #[serde(default)]
+    pub material_id: i32,
 }
 
 /// Accepts both ISO-8601 (`2008-01-02T21:21:46`) and the legacy
