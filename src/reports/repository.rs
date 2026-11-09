@@ -6,16 +6,25 @@ use crate::reports::model::{
     Citologia, Histopatologia, NewCitologia, NewHistopatologia, NewStudy, Study,
 };
 
-impl_repository!(
-    async,
-    Study,
-    studies,
-    i32,
-    NewStudy,
-    Study,
-    Citologia,
-    Histopatologia
-);
+// TODO: the parent/child (hierarchy) arm of impl_repository! is still WIP;
+// use the plain CRUD arm for each table until it is finished.
+// impl_repository!(
+//     async,
+//     Study,
+//     studies,
+//     i32,
+//     NewStudy,
+//     Study,
+//     Citologia,
+//     Histopatologia
+// );
+impl_repository!(async, Study, studies, i32, NewStudy);
+impl_repository!(async, Citologia, citologias, i32, NewCitologia);
+impl_repository!(async, Histopatologia, histopatologias, i32, NewHistopatologia);
+
+pub type ReportsRepository = StudyRepository;
+pub type CitologiasRepository = CitologiaRepository;
+pub type HistopatologiasRepository = HistopatologiaRepository;
 // impl_repository!(ReportsRepository, Study, studies, i32, NewStudy);
 // impl_repository!(
 //     HistopatologiasRepository,

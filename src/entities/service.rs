@@ -1,5 +1,5 @@
 use crate::{
-    core::database::repository::DatabaseRepository,
+    core::database::repository::AsyncLayer,
     entities::{
         model::{Doctor, NewDoctor, NewMaterial},
         repository::{DoctorRepository, MaterialRepository},
@@ -24,10 +24,10 @@ impl EntitiesService {
     }
     pub async fn create_doctor(&self, name: impl Into<String>) -> anyhow::Result<()> {
         let new_doctor = NewDoctor::new(name.into());
-        self.doctors_repository.create(new_doctor).await
+        self.doctors_repository.create(new_doctor).await.map(|_| ())
     }
     pub async fn create_material(&self, name: impl Into<String>) -> anyhow::Result<()> {
         let new_material = NewMaterial::new(name.into());
-        self.materials_repository.create(new_material).await
+        self.materials_repository.create(new_material).await.map(|_| ())
     }
 }
