@@ -50,8 +50,7 @@ pub trait AsyncLayerWithHierarchy: DatabaseRepository {
     async fn delete(&self, id: Self::Id) -> anyhow::Result<()>;
 }
 
-// Acá podemos pasar directamente el modelo (no se requiere implementar parent).
-// Como no se requiere implementar Parent ni child pasa directo sin decir nada.
+// Repositorio de un modelo sin hijos.
 pub trait AsyncLayer: DatabaseRepository {
     async fn create(&self, insertable: Self::New) -> anyhow::Result<Self::Model>;
     async fn delete(&self, id: Self::Id) -> anyhow::Result<()>;

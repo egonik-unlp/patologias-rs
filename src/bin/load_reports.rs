@@ -35,7 +35,6 @@ fn main() -> anyhow::Result<()> {
         .flexible(true)
         .delimiter(b',')
         .from_path("./data/studies-test.csv")?;
-    // let mut rdr = csv::Reader::from_path("./data/studies-test.csv")?;
     let mut rdrh = csv::Reader::from_path("./data/studies-test.csv")?;
     for (n, (result, raw_record)) in rdr
         .deserialize::<CsvReport>()
@@ -45,24 +44,12 @@ fn main() -> anyhow::Result<()> {
         if n > 6 {
             break;
         }
-        // let des: CsvReport = result?;
         if let Ok(report) = result {
             println!("{:?}", report);
         } else {
             let rr = raw_record.unwrap();
             println!("Error with line: {:?}\n{:?}\n\n", result, rr)
         }
-        //
-
-        // println!("{:?}", des);
-        // let mut bytes_so_far = 0;
-        // for (pos, header) in record.iter().zip(rdrh.headers().unwrap()) {
-        //     let range_start = bytes_so_far;
-        //     let range_end = bytes_so_far + pos.len();
-        //
-        //     println!("string = {pos}\nheader={header}\n({range_start}..{range_end})");
-        //     bytes_so_far = range_end;
-        // }
     }
     Ok(())
 }
