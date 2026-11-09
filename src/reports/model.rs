@@ -6,9 +6,26 @@ use diesel::{
 use diesel_derive_enum::DbEnum;
 use serde::{Deserialize, Serialize};
 
+#[derive(Debug)]
 pub enum StudyDetail {
     Histopatologia(Histopatologia),
     Citologia(Citologia),
+}
+
+/// The child row of a new study. Its variant decides the study's `tipo`.
+#[derive(Debug)]
+pub enum NewStudyDetail {
+    Histopatologia(NewHistopatologia),
+    Citologia(NewCitologia),
+}
+
+impl NewStudyDetail {
+    pub fn tipo(&self) -> StudyType {
+        match self {
+            Self::Histopatologia(_) => StudyType::Histopatologia,
+            Self::Citologia(_) => StudyType::Citologia,
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize, DbEnum, Default)]
@@ -82,6 +99,12 @@ pub struct Study {
     material_id: i32,
     created_at: NaiveDateTime,
     updated_at: NaiveDateTime,
+}
+
+impl Study {
+    pub fn id(&self) -> i32 {
+        self.id
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset, Default)]

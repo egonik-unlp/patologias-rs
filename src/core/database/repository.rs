@@ -77,6 +77,9 @@ macro_rules! impl_repository {
                 pub fn new(pool: $crate::core::database::connection::DbPool) -> Self {
                 Self { pool }
         }
+                pub fn pool(&self) -> &$crate::core::database::connection::DbPool {
+                    &self.pool
+                }
         }
         }
     };
