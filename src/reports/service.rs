@@ -1,6 +1,7 @@
 use crate::core::database::repository::AsyncLayerWithHierarchy;
-use crate::reports::model::{NewStudy, Study};
-use crate::reports::repository::{NewStudyDetail, StudyDetail, StudyRepository};
+use crate::reports::dto::FullStudyDto;
+use crate::reports::model::Study;
+use crate::reports::repository::{StudyDetail, StudyRepository};
 
 #[derive(Debug, Clone)]
 pub struct ReportsService {
@@ -14,9 +15,12 @@ impl ReportsService {
 
     pub async fn create_study(
         &self,
-        study: NewStudy,
-        detail: NewStudyDetail,
+        full_study: FullStudyDto,
     ) -> anyhow::Result<(Study, StudyDetail)> {
+        let (study, detail) = full_study.into_parts();
         self.repo.create(study, detail).await
+    }
+    pub async fn read_all_studies(&self) -> anyhow::Result<Vec<(Study, StudyDetail)>> {
+        self.repo.read_all().await
     }
 }

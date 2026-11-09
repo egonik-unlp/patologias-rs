@@ -51,7 +51,8 @@ diesel::table! {
 
     studies (id) {
         id -> Int4,
-        protocolo -> Int4,
+        #[max_length = 64]
+        protocolo -> Varchar,
         fecha -> Timestamp,
         tipo -> StudyType,
         #[max_length = 255]

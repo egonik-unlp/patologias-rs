@@ -6,6 +6,11 @@ use diesel::{
 use diesel_derive_enum::DbEnum;
 use serde::{Deserialize, Serialize};
 
+use crate::reports::{
+    dto::{CitologiaDto, FullStudyDto, HistopatologiaDto, StudyDetailDto, StudyDto, StudyTypeDto},
+    repository::{NewStudyDetail, StudyDetail},
+};
+
 #[derive(Debug, Deserialize, Serialize, DbEnum, Default)]
 #[serde(rename_all = "lowercase")]
 #[ExistingTypePath = "crate::core::database::schema::sql_types::StudyType"]
@@ -67,7 +72,7 @@ pub struct NewHistopatologia {
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Study {
     id: i32,
-    protocolo: i32,
+    protocolo: String,
     fecha: NaiveDateTime,
     tipo: StudyType,
     paciente: String,
@@ -81,7 +86,7 @@ pub struct Study {
 #[diesel(table_name= crate::core::database::schema::studies)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct NewStudy {
-    pub protocolo: i32,
+    pub protocolo: String,
     #[serde(deserialize_with = "deserialize_fecha")]
     pub fecha: NaiveDateTime,
     pub tipo: StudyType,
@@ -105,4 +110,155 @@ where
     s.parse::<NaiveDateTime>()
         .or_else(|_| NaiveDateTime::parse_from_str(&s, "%Y-%m-%d %H:%M:%S%.f"))
         .map_err(serde::de::Error::custom)
+}
+
+impl From<StudyTypeDto> for StudyType {
+    fn from(value: StudyTypeDto) -> Self {
+        match value {
+            StudyTypeDto::Histopatologia => StudyType::Histopatologia,
+            StudyTypeDto::Citologia => StudyType::Citologia,
+        }
+    }
+}
+impl From<StudyDto> for NewStudy {
+    fn from(value: StudyDto) -> Self {
+        let StudyDto {
+            protocolo,
+            fecha,
+            paciente,
+            doctor_id,
+            tipo,
+            material_id,
+        } = value;
+        let tipo = tipo.into();
+        Self {
+            protocolo,
+            fecha,
+            tipo,
+            paciente,
+            doctor_id: doctor_id,
+            material_id: material_id,
+        }
+    }
+}
+pub type Parts = (Study, StudyDetail);
+impl From<Parts> for FullStudyDto {
+    fn from(value: Parts) -> Self {
+        let (new_study, new_study_detail) = value;
+        let tipi = match new_study_detail {
+            StudyDetail::Citologia(_) => StudyTypeDto::Citologia,
+            StudyDetail::Histopatologia(_) => StudyTypeDto::Histopatologia,
+        };
+        let Study {
+            protocolo,
+            fecha,
+            tipo,
+            paciente,
+            doctor_id,
+            material_id,
+            ..
+        } = new_study;
+        let parent = StudyDto {
+            doctor_id,
+            protocolo,
+            fecha,
+            tipo: tipi,
+            paciente,
+            material_id,
+        };
+        let child = match new_study_detail {
+            StudyDetail::Citologia(cito) => {
+                let Citologia {
+                    microflora,
+                    celulas_pavimentosas,
+                    celulas_metaplasicas,
+                    leucocitos,
+                    hematies,
+                    celulas_endocervicales,
+                    compatible_con,
+                    sugerencia,
+                    diag_citologias,
+                    ..
+                } = cito;
+                StudyDetailDto::Citologia(CitologiaDto {
+                    microflora,
+                    celulas_pavimentosas,
+                    celulas_metaplasicas,
+                    leucocitos,
+                    hematies,
+                    celulas_endocervicales,
+                    compatible_con,
+                    sugerencia,
+                    diag_citologias,
+                })
+            }
+            StudyDetail::Histopatologia(histo) => {
+                let Histopatologia {
+                    descripcion_macroscopica,
+                    diagnostico_histopatologico,
+                    ..
+                } = histo;
+                StudyDetailDto::Histopatologia(HistopatologiaDto {
+                    descripcion_macroscopica,
+                    diagnostico_histopatologico,
+                })
+            }
+        };
+        Self { parent, child }
+    }
+}
+
+pub type NewParts = (NewStudy, NewStudyDetail);
+impl FullStudyDto {
+    pub fn into_parts(self) -> NewParts {
+        (self.parent.into(), self.child.into_inner())
+    }
+}
+
+impl StudyDetailDto {
+    fn into_inner(self) -> NewStudyDetail {
+        match self {
+            Self::Citologia(dto) => NewStudyDetail::Citologia(dto.into()),
+            Self::Histopatologia(dto) => NewStudyDetail::Histopatologia(dto.into()),
+        }
+    }
+}
+impl From<HistopatologiaDto> for NewHistopatologia {
+    fn from(value: HistopatologiaDto) -> Self {
+        let HistopatologiaDto {
+            descripcion_macroscopica,
+            diagnostico_histopatologico,
+        } = value;
+        Self {
+            descripcion_macroscopica,
+            diagnostico_histopatologico,
+        }
+    }
+}
+
+impl From<CitologiaDto> for NewCitologia {
+    fn from(value: CitologiaDto) -> Self {
+        let CitologiaDto {
+            microflora,
+            celulas_pavimentosas,
+            celulas_metaplasicas,
+            leucocitos,
+            hematies,
+            celulas_endocervicales,
+            compatible_con,
+            sugerencia,
+            diag_citologias,
+        } = value;
+        Self {
+            microflora,
+            celulas_pavimentosas,
+            celulas_metaplasicas,
+            leucocitos,
+            hematies,
+            celulas_endocervicales,
+            compatible_con,
+            sugerencia,
+            diag_citologias,
+        }
+    }
 }

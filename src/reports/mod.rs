@@ -1,4 +1,4 @@
-#[cfg(feature = "ssr")]
+// #[cfg(feature = "ssr")]
 pub mod dto;
 #[cfg(feature = "ssr")]
 pub mod model;
