@@ -33,7 +33,7 @@ dotenvy = { version = "0.15.7", optional = true }
 
 
 csv = { version = "1.4.0" }
-serde_json = { version = "1.0.154", optional = true }
+serde_json = { version = "1.0.154" }
 pastey = { version = "0.2.3", optional = true }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 # Client-only feature overrides to safely tap into browser JS time APIs
@@ -43,7 +43,7 @@ ssr = [
   "dep:axum",
   "dep:tokio",
   "dep:diesel",
-  "dep:serde_json",
+  # "dep:serde_json",
   "dep:dotenvy",
   "dep:pastey",
   "dep:diesel-derive-enum",
@@ -55,7 +55,6 @@ ssr = [
   "leptos_router/ssr",
 ]
 hydrate = ["leptos/hydrate", "dep:console_error_panic_hook", "dep:wasm-bindgen"]
-serde_json = ["dep:serde_json"]
 
 # Defines a size-optimized profile for the WASM bundle in release mode
 [profile.wasm-release]

@@ -1,4 +1,4 @@
-use crate::reports::dto::{FieldsDto, FullStudyDto};
+use crate::reports::dto::{FullStudyDto, ReportFieldsDto};
 use leptos::prelude::*;
 
 #[server]
@@ -14,7 +14,9 @@ pub async fn read_all_and_stringify() -> Result<Vec<FullStudyDto>, ServerFnError
 }
 
 #[server]
-pub async fn get_suggestions_for_field(field: FieldsDto) -> Result<Vec<String>, ServerFnError> {
+pub async fn get_suggestions_for_field(
+    field: ReportFieldsDto,
+) -> Result<Vec<String>, ServerFnError> {
     use crate::entrypoint::application_state::AppState;
     let ctx = use_context::<AppState>().ok_or_else(|| ServerFnError::new("getting context"))?;
     ctx.reports_service

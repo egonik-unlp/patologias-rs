@@ -1,5 +1,5 @@
 use crate::reports::{
-    dto::{FieldsDto, FullStudyDto, StudyDto},
+    dto::{FullStudyDto, ReportFieldsDto, StudyDto},
     server::{get_suggestions_for_field, read_all_and_stringify},
 };
 use leptos::prelude::*;
@@ -28,7 +28,7 @@ pub fn Reports() -> impl IntoView {
 
 #[component]
 pub fn SuggestInput(
-    field: FieldsDto,
+    field: ReportFieldsDto,
     #[prop(into)] id: String,
     /// Current value (e.g. from the URL query). The form reads the edited
     /// value through `name` on submit.
@@ -89,7 +89,7 @@ pub fn FormExample() -> impl IntoView {
         <Form method="GET" action="">
             // input names determine query string key
             <input type="text" name="microflora" value=microflora/>
-            <SuggestInput field=FieldsDto::Citologia(crate::reports::dto::CitoFields::Microflora) id="microflora" value = microflora />
+            <SuggestInput field=ReportFieldsDto::Citologia(crate::reports::dto::CitoFields::Microflora) id="microflora" value = microflora />
             <input type="text" name="number" value=number/>
             <select name="select">
                 // `selected` will set which starts as selected

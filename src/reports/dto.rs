@@ -68,7 +68,7 @@ pub enum HistoFields {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub enum FieldsDto {
+pub enum ReportFieldsDto {
     Citologia(CitoFields),
     Histopatologia(HistoFields),
 }
