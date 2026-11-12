@@ -11,7 +11,6 @@ pub trait DatabaseRepository: Sized {
         &self,
         insertable: Self::New,
         conn: &mut PgConnection,
-        parent_id: Option<Self::Id>,
     ) -> anyhow::Result<Self::Model>;
     fn _delete(&self, id: Self::Id, conn: &mut PgConnection) -> anyhow::Result<()>;
     fn _update(
@@ -86,9 +85,8 @@ macro_rules! impl_repository {
 
             fn _create(
                 &self,
-                mut new: $new,
+                new: $new,
                 conn: &mut diesel::prelude::PgConnection,
-                parent_id: Option<$id>
             ) -> anyhow::Result<$model> {
                 use diesel::prelude::*;
                  diesel::insert_into($table::table)
@@ -162,7 +160,7 @@ macro_rules! impl_repository {
                 $crate::core::database::connection::interact(&self.pool, move |conn| {
                     use anyhow::Context;
                     use $crate::core::database::repository::DatabaseRepository;
-                    repo._create(insertable, conn, None).context("creating single")
+                    repo._create(insertable, conn ).context("creating single")
                 })
                 .await
         }
@@ -343,7 +341,7 @@ macro_rules! impl_repository {
                     use diesel::{Connection, Identifiable};
                     use $crate::core::database::repository::DatabaseRepository;
                     conn.transaction(|conn| {
-                        let parent = repo._create(new, conn, None).context("creating parent")?;
+                        let parent = repo._create(new, conn ).context("creating parent")?;
                         let id: $id = *(&parent).id();
                         let child = Self::_create_child(conn, id, child).context("creating child")?;
                         Ok((parent, child))

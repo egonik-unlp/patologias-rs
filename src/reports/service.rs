@@ -1,5 +1,5 @@
 use crate::core::database::repository::AsyncLayerWithHierarchy;
-use crate::reports::dto::FullStudyDto;
+use crate::reports::dto::{FieldsDto, FullStudyDto};
 use crate::reports::model::Study;
 use crate::reports::repository::{StudyDetail, StudyRepository};
 
@@ -22,5 +22,8 @@ impl ReportsService {
     }
     pub async fn read_all_studies(&self) -> anyhow::Result<Vec<(Study, StudyDetail)>> {
         self.repo.read_all().await
+    }
+    pub async fn get_suggestions(&self, field: FieldsDto) -> anyhow::Result<Vec<String>> {
+        self.repo.get_suggestions(field, 20).await
     }
 }

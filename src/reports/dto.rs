@@ -47,3 +47,28 @@ pub struct StudyDto {
     pub material_id: i32,
     pub tipo: StudyTypeDto,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum CitoFields {
+    Microflora,
+    CelulasPavimentosas,
+    CelulasMetaplasicas,
+    Leucocitos,
+    Hematies,
+    CelulasEndocervicales,
+    CompatibleCon,
+    Sugerencia,
+    DiagCitologias,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum HistoFields {
+    DescripcionMacroscopica,
+    DiagnosticoHistopatologico,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub enum FieldsDto {
+    Citologia(CitoFields),
+    Histopatologia(HistoFields),
+}

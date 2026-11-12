@@ -37,7 +37,7 @@ pub struct Citologia {
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset, Default)]
-#[diesel(table_name= crate::core::database::schema::citologias)]
+#[diesel(table_name = crate::core::database::schema::citologias)]
 pub struct NewCitologia {
     pub microflora: Option<String>,
     pub celulas_pavimentosas: Option<String>,
@@ -50,7 +50,7 @@ pub struct NewCitologia {
     pub diag_citologias: Option<String>,
 }
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
-#[diesel(table_name= crate::core::database::schema::histopatologias)]
+#[diesel(table_name = crate::core::database::schema::histopatologias)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Histopatologia {
     id: i32,
