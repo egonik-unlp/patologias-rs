@@ -1,11 +1,18 @@
-use crate::core::database::connection::interact_with_connection;
-use crate::core::database::repository::rank_suggestions;
-use crate::core::database::schema::{citologias, histopatologias, studies};
-use crate::reports::dto::{CitoFields, HistoFields, ReportFieldsDto};
-use crate::reports::model::{
-    Citologia, Histopatologia, NewCitologia, NewHistopatologia, NewStudy, Study, StudyType,
+use crate::{
+    core::database::{
+        connection::interact_with_connection,
+        repository::rank_suggestions,
+        schema::{citologias, histopatologias, studies},
+    },
+    impl_repository,
+    reports::{
+        dto::{CitoFields, HistoFields, ReportFieldsDto},
+        model::{
+            Citologia, Histopatologia, NewCitologia, NewHistopatologia, NewStudy, Study, StudyType,
+        },
+    },
+    suggestions,
 };
-use crate::{impl_repository, suggestions};
 
 impl_repository!(
     async, Study, studies, i32, NewStudy,
@@ -15,9 +22,6 @@ impl_repository!(
     },
     kind = tipo: StudyType,
 );
-
-use diesel::prelude::*;
-
 impl StudyRepository {
     pub async fn get_suggestions(
         &self,

@@ -20,9 +20,11 @@ impl ReportsService {
         let (study, detail) = full_study.into_parts();
         self.repo.create(study, detail).await
     }
+
     pub async fn read_all_studies(&self) -> anyhow::Result<Vec<(Study, StudyDetail)>> {
         self.repo.read_all().await
     }
+
     pub async fn get_suggestions(&self, field: ReportFieldsDto) -> anyhow::Result<Vec<String>> {
         self.repo.get_suggestions(field, 20).await
     }

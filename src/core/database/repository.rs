@@ -5,6 +5,8 @@ use std::collections::HashMap;
 use diesel::PgConnection;
 // Traits para repository
 
+pub trait IsField {}
+
 pub trait DatabaseRepository: Sized {
     type Id: Clone + Copy;
     type Model;

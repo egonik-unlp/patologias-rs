@@ -3,9 +3,9 @@ pub mod app;
 pub mod core;
 pub mod entities;
 pub mod entrypoint;
+pub mod frontend;
 pub mod reports;
 pub mod users;
-
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn hydrate() {

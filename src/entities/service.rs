@@ -1,6 +1,7 @@
 use crate::{
     core::database::repository::AsyncLayer,
     entities::{
+        dto::{DoctorFieldsDto, MaterialFieldsDto},
         model::{Doctor, NewDoctor, NewMaterial},
         repository::{DoctorRepository, MaterialRepository},
     },
@@ -28,6 +29,21 @@ impl EntitiesService {
     }
     pub async fn create_material(&self, name: impl Into<String>) -> anyhow::Result<()> {
         let new_material = NewMaterial::new(name.into());
-        self.materials_repository.create(new_material).await.map(|_| ())
+        self.materials_repository
+            .create(new_material)
+            .await
+            .map(|_| ())
+    }
+    pub async fn get_suggestions_doctors(
+        &self,
+        field: DoctorFieldsDto,
+    ) -> anyhow::Result<Vec<String>> {
+        self.doctors_repository.get_suggestions(field, 20).await
+    }
+    pub async fn get_suggestions_materials(
+        &self,
+        field: MaterialFieldsDto,
+    ) -> anyhow::Result<Vec<String>> {
+        self.materials_repository.get_suggestions(field, 20).await
     }
 }

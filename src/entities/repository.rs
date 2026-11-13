@@ -1,7 +1,7 @@
 use crate::{
     core::database::{
         connection::interact_with_connection,
-        repository::rank_suggestions,
+        repository::{rank_suggestions, IsField},
         schema::{doctors, materials},
     },
     entities::{
@@ -14,6 +14,8 @@ use crate::{
 impl_repository!(async, Doctor, doctors, i32, NewDoctor);
 impl_repository!(async, Material, materials, i32, NewMaterial);
 
+impl IsField for DoctorFieldsDto {}
+impl IsField for MaterialFieldsDto {}
 impl DoctorRepository {
     pub async fn get_suggestions(
         &self,
