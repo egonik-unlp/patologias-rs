@@ -1,6 +1,5 @@
 use std::future::Future;
 
-use crate::reports::dto::ReportFieldsDto;
 use leptos::prelude::*;
 
 pub trait Suggestions {
@@ -22,6 +21,7 @@ pub fn SuggestInput(
 
     view! {
         <input
+            class= "border-2 border-b-slate-700"
             type="text"
             id=id.clone()
             name=id
@@ -36,7 +36,7 @@ pub fn SuggestInput(
                         .await
                         .unwrap_or_default()
                         .into_iter()
-                        .map(|v| view! { <option value=v/> })
+                        .map(|v| view! { <option value=v /> })
                         .collect_view()
                 })}
             </Suspense>

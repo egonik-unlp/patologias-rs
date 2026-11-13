@@ -152,7 +152,6 @@ impl From<Parts> for FullStudyDto {
         let Study {
             protocolo,
             fecha,
-            tipo,
             paciente,
             doctor_id,
             material_id,

@@ -2,7 +2,7 @@ use crate::{
     core::database::repository::AsyncLayer,
     entities::{
         dto::{DoctorFieldsDto, MaterialFieldsDto},
-        model::{Doctor, NewDoctor, NewMaterial},
+        model::{NewDoctor, NewMaterial},
         repository::{DoctorRepository, MaterialRepository},
     },
 };
