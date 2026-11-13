@@ -1,0 +1,13 @@
+/* Tailwind v4 entrypoint. Built by cargo-leptos (tailwind-input-file in Cargo.toml). */
+
+/* source(none) disables auto-detection so the large untracked dumps in the repo root
+   (exp.rs, dump-rs, file_dump.txt) aren't scanned; only the sources below are. */
+@import "tailwindcss" source(none);
+@source "../src/**/*.rs";
+
+@layer base {
+  body {
+    font-family: sans-serif;
+    text-align: center;
+  }
+}
