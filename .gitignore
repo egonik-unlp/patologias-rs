@@ -15,3 +15,9 @@ Cargo.lock
 
 # Env files
 .env
+
+# Data files
+*.csv
+
+# Js lock files
+package-lock.json
