@@ -1,12 +1,12 @@
 use crate::{
     core::database::{
-        connection::interact_with_connection,
-        repository::rank_suggestions,
+        connection::{interact, interact_with_connection},
+        repository::{rank_suggestions, DatabaseRepository},
         schema::{citologias, histopatologias, studies},
     },
     impl_repository,
     reports::{
-        dto::{CitoFields, HistoFields, ReportFieldsDto},
+        dto::{CitoFields, HistoFields, ReportFieldsDto, StudyDto},
         model::{
             Citologia, Histopatologia, NewCitologia, NewHistopatologia, NewStudy, Study, StudyType,
         },
@@ -74,5 +74,13 @@ impl StudyRepository {
                 .filter_map(|(v, n)| Some((v?, n))),
             limit,
         ))
+    }
+    pub async fn get_shallow(&self) -> anyhow::Result<Vec<StudyDto>> {
+        let repo = self.clone();
+        interact(&self.pool, move |conn| {
+            repo._read_all(conn)
+                .map(|val| val.into_iter().map(Into::into).collect())
+        })
+        .await
     }
 }

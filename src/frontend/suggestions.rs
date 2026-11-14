@@ -21,7 +21,7 @@ pub fn SuggestInput(
 
     view! {
         <input
-            class= "border-2 border-b-slate-700"
+            class="border-2 border-b-slate-700"
             type="text"
             id=id.clone()
             name=id

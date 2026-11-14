@@ -1,11 +1,11 @@
 use crate::{
     frontend::suggestions::Suggestions,
-    reports::dto::{FullStudyDto, ReportFieldsDto},
+    reports::dto::{FullStudyDto, ReportFieldsDto, StudyDto},
 };
 use leptos::prelude::*;
 
 #[server]
-pub async fn read_all_and_stringify() -> Result<Vec<FullStudyDto>, ServerFnError> {
+pub async fn read_all() -> Result<Vec<FullStudyDto>, ServerFnError> {
     use crate::entrypoint::application_state::AppState;
 
     let ctx = use_context::<AppState>().unwrap();
@@ -14,6 +14,17 @@ pub async fn read_all_and_stringify() -> Result<Vec<FullStudyDto>, ServerFnError
         .await
         .map_err(ServerFnError::new)
         .map(|v| v.into_iter().map(FullStudyDto::from).collect())
+}
+
+#[server]
+pub async fn read_all_surface() -> Result<Vec<StudyDto>, ServerFnError> {
+    use crate::entrypoint::application_state::AppState;
+
+    let ctx = use_context::<AppState>().unwrap();
+    ctx.reports_service
+        .read_all_shallow()
+        .await
+        .map_err(ServerFnError::new)
 }
 
 #[server]

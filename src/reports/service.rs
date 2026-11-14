@@ -1,5 +1,5 @@
 use crate::core::database::repository::AsyncLayerWithHierarchy;
-use crate::reports::dto::{FullStudyDto, ReportFieldsDto};
+use crate::reports::dto::{FullStudyDto, ReportFieldsDto, StudyDto};
 use crate::reports::model::Study;
 use crate::reports::repository::{StudyDetail, StudyRepository};
 
@@ -7,6 +7,8 @@ use crate::reports::repository::{StudyDetail, StudyRepository};
 pub struct ReportsService {
     repo: StudyRepository,
 }
+
+// Donde tienen que desaparecer los dtos
 
 impl ReportsService {
     pub fn new(repo: StudyRepository) -> Self {
@@ -24,7 +26,9 @@ impl ReportsService {
     pub async fn read_all_studies(&self) -> anyhow::Result<Vec<(Study, StudyDetail)>> {
         self.repo.read_all().await
     }
-
+    pub async fn read_all_shallow(&self) -> anyhow::Result<Vec<StudyDto>> {
+        self.repo.get_shallow().await
+    }
     pub async fn get_suggestions(&self, field: ReportFieldsDto) -> anyhow::Result<Vec<String>> {
         self.repo.get_suggestions(field, 20).await
     }

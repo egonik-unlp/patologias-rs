@@ -19,6 +19,15 @@ pub enum StudyType {
     #[default]
     Citologia,
 }
+
+impl From<StudyType> for StudyTypeDto {
+    fn from(value: StudyType) -> Self {
+        match value {
+            StudyType::Histopatologia => StudyTypeDto::Histopatologia,
+            StudyType::Citologia => StudyTypeDto::Citologia,
+        }
+    }
+}
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
 #[diesel(table_name= crate::core::database::schema::citologias)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
@@ -142,6 +151,30 @@ impl From<StudyDto> for NewStudy {
     }
 }
 pub type Parts = (Study, StudyDetail);
+impl From<Study> for StudyDto {
+    fn from(value: Study) -> Self {
+        let Study {
+            id,
+            protocolo,
+            fecha,
+            material_id,
+            paciente,
+            tipo,
+            doctor_id,
+            ..
+        } = value;
+        let tipo = tipo.into();
+        Self {
+            protocolo,
+            fecha,
+            paciente,
+            doctor_id,
+            material_id,
+            tipo,
+        }
+    }
+}
+
 impl From<Parts> for FullStudyDto {
     fn from(value: Parts) -> Self {
         let (new_study, new_study_detail) = value;

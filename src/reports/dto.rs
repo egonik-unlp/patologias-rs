@@ -1,3 +1,5 @@
+use std::{fmt::Display, str::FromStr};
+
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
@@ -17,6 +19,16 @@ pub enum StudyDetailDto {
 pub enum StudyTypeDto {
     Histopatologia,
     Citologia,
+}
+
+impl Display for StudyTypeDto {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            StudyTypeDto::Histopatologia => "Histopatologia",
+            StudyTypeDto::Citologia => "Citologia",
+        };
+        writeln!(f, "{}", s)
+    }
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -71,4 +83,18 @@ pub enum HistoFields {
 pub enum ReportFieldsDto {
     Citologia(CitoFields),
     Histopatologia(HistoFields),
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct ParseReportTypeError;
+
+impl FromStr for StudyTypeDto {
+    type Err = ParseReportTypeError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "Histopatologia" | "histopatologia" => Ok(StudyTypeDto::Histopatologia),
+            "Citologia" | "citologia" => Ok(StudyTypeDto::Citologia),
+            _ => Err(ParseReportTypeError),
+        }
+    }
 }

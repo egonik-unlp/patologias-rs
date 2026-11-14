@@ -36,17 +36,17 @@ pub fn App() -> impl IntoView {
 
         // sets the document title
         <Title text="Welcome to Leptos" />
-            <nav class="flex p-10">
-                <a href="/">"Home"</a>
-                <a href="/create_report">"Nuevou Reportou"</a>
-                <a href="/reports">"Allou Reportous"</a>
-            </nav>
+        <nav class="flex p-10">
+            <a href="/">"Home"</a>
+            <a href="/create_report">"Nuevou Reportou"</a>
+            <a href="/reports">"Allou Reportous"</a>
+        </nav>
         // content for this welcome page
         <Router>
             <main>
                 <Routes fallback=|| "Page not found.".into_view()>
                     <Route path=StaticSegment("") view=HomePage />
-                    <Route path=path!("/reports")  view=Reports/ >
+                    <Route path=path!("/reports") view=Reports />
                     <Route path=path!("/create_report") view=CreateReport />
                 </Routes>
             </main>
