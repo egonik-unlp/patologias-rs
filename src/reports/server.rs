@@ -17,6 +17,16 @@ pub async fn read_all() -> Result<Vec<FullStudyDto>, ServerFnError> {
 }
 
 #[server]
+pub async fn read_report(id: i32) -> Result<FullStudyDto, ServerFnError> {
+    use crate::entrypoint::application_state::AppState;
+
+    let ctx = use_context::<AppState>().unwrap();
+    ctx.reports_service
+        .get_report_by_id(id)
+        .await
+        .map_err(ServerFnError::new)
+}
+#[server]
 pub async fn read_all_surface() -> Result<Vec<StudyDto>, ServerFnError> {
     use crate::entrypoint::application_state::AppState;
 

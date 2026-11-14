@@ -9,6 +9,12 @@ pub struct FullStudyDto {
     pub child: StudyDetailDto,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct NewFullStudyDto {
+    pub parent: NewStudyDto,
+    pub child: StudyDetailDto,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum StudyDetailDto {
     Histopatologia(HistopatologiaDto),
@@ -51,7 +57,7 @@ pub struct HistopatologiaDto {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StudyDto {
+pub struct NewStudyDto {
     pub protocolo: String,
     pub fecha: NaiveDateTime,
     pub paciente: String,
@@ -60,6 +66,16 @@ pub struct StudyDto {
     pub tipo: StudyTypeDto,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StudyDto {
+    pub id: i32,
+    pub protocolo: String,
+    pub fecha: NaiveDateTime,
+    pub paciente: String,
+    pub doctor_id: i32,
+    pub material_id: i32,
+    pub tipo: StudyTypeDto,
+}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum CitoFields {
     Microflora,

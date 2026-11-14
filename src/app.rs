@@ -1,4 +1,4 @@
-use crate::reports::component::{CreateReport, Reports};
+use crate::reports::component::{CreateReport, Report, Reports};
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
 use leptos_router::path;
@@ -36,7 +36,7 @@ pub fn App() -> impl IntoView {
 
         // sets the document title
         <Title text="Welcome to Leptos" />
-        <nav class="flex p-10">
+        <nav class="flex p-10 space-x-20">
             <a href="/">"Home"</a>
             <a href="/create_report">"Nuevou Reportou"</a>
             <a href="/reports">"Allou Reportous"</a>
@@ -47,6 +47,7 @@ pub fn App() -> impl IntoView {
                 <Routes fallback=|| "Page not found.".into_view()>
                     <Route path=StaticSegment("") view=HomePage />
                     <Route path=path!("/reports") view=Reports />
+                    <Route path=path!("/reports/:id") view=Report/>
                     <Route path=path!("/create_report") view=CreateReport />
                 </Routes>
             </main>

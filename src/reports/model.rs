@@ -7,7 +7,10 @@ use diesel_derive_enum::DbEnum;
 use serde::{Deserialize, Serialize};
 
 use crate::reports::{
-    dto::{CitologiaDto, FullStudyDto, HistopatologiaDto, StudyDetailDto, StudyDto, StudyTypeDto},
+    dto::{
+        CitologiaDto, FullStudyDto, HistopatologiaDto, NewFullStudyDto, NewStudyDto,
+        StudyDetailDto, StudyDto, StudyTypeDto,
+    },
     repository::{NewStudyDetail, StudyDetail},
 };
 
@@ -129,9 +132,9 @@ impl From<StudyTypeDto> for StudyType {
         }
     }
 }
-impl From<StudyDto> for NewStudy {
-    fn from(value: StudyDto) -> Self {
-        let StudyDto {
+impl From<NewStudyDto> for NewStudy {
+    fn from(value: NewStudyDto) -> Self {
+        let NewStudyDto {
             protocolo,
             fecha,
             paciente,
@@ -165,6 +168,7 @@ impl From<Study> for StudyDto {
         } = value;
         let tipo = tipo.into();
         Self {
+            id,
             protocolo,
             fecha,
             paciente,
@@ -183,6 +187,7 @@ impl From<Parts> for FullStudyDto {
             StudyDetail::Histopatologia(_) => StudyTypeDto::Histopatologia,
         };
         let Study {
+            id,
             protocolo,
             fecha,
             paciente,
@@ -191,6 +196,7 @@ impl From<Parts> for FullStudyDto {
             ..
         } = new_study;
         let parent = StudyDto {
+            id,
             doctor_id,
             protocolo,
             fecha,
@@ -241,7 +247,7 @@ impl From<Parts> for FullStudyDto {
 }
 
 pub type NewParts = (NewStudy, NewStudyDetail);
-impl FullStudyDto {
+impl NewFullStudyDto {
     pub fn into_parts(self) -> NewParts {
         (self.parent.into(), self.child.into_inner())
     }

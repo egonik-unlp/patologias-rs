@@ -1,19 +1,23 @@
 use std::str::FromStr;
 
 use crate::{
-    entities::dto::DoctorFieldsDto,
+    entities::dto::{DoctorFieldsDto, MaterialFieldsDto},
     frontend::suggestions::SuggestInput,
     reports::{
         dto::{
             CitoFields, CitologiaDto, FullStudyDto, HistoFields, HistopatologiaDto,
             ReportFieldsDto, StudyDetailDto, StudyDto, StudyTypeDto,
         },
-        server::read_all,
+        server::{read_all, read_report},
     },
 };
 
+use chrono::NaiveDateTime;
 use leptos::prelude::*;
-use leptos_router::{components::Form, hooks::use_query_map};
+use leptos_router::{
+    components::Form,
+    hooks::{use_params_map, use_query_map},
+};
 
 macro_rules! query_map_to_field {
     ( $($param:ident),*   ) => {
@@ -42,7 +46,22 @@ macro_rules! html_and_suggestions {
 }
 
 #[component]
-pub fn ReportView(report: FullStudyDto) -> impl IntoView {
+pub fn Report() -> impl IntoView {
+    let params = use_params_map();
+    let id = move || params.read().get("id").unwrap_or_default();
+    let id = id().parse::<i32>().unwrap();
+    view! {
+        <Await
+        future=read_report(id)
+            let:data
+        >
+                <ReportView report=data.clone().unwrap()/>
+        </Await>
+    }
+}
+
+#[component]
+fn ReportView(report: FullStudyDto) -> impl IntoView {
     let FullStudyDto { parent, child } = report;
     view! {
         <div>
@@ -73,7 +92,8 @@ macro_rules! simple_report_html {
             <div>
                 $($(
                     <div>
-                        {stringify!($field_straight.unwrap_or_default()).to_uppercase()} " : " {$field_straight}
+                        {stringify!($field_straight).to_uppercase()} " : " {$field_straight}
+
                     </div>
                 )*)?
                 $(
@@ -132,6 +152,7 @@ fn ShowParent(parent: StudyDto) -> impl IntoView {
         doctor_id,
         material_id,
         tipo,
+        ..
     } = parent;
     view! {
         <div>"Protocolo": {protocolo}</div>
@@ -160,16 +181,17 @@ pub fn Reports() -> impl IntoView {
                 resource
                     .get()
                     .map(|rec| match rec {
-                        Ok(val) => {
+                        Ok(reports) => {
                             view! {
-                                <div>
-                                    {val
-                                        .into_iter()
-                                        .rev()
-                                        .take(20)
-                                        .map(|val| view! { <p>{format!("{:?}", val)}</p> })
-                                        .collect_view()}
-                                </div>
+                                <!-- <div> -->
+                                <!--     {val -->
+                                <!--         .into_iter() -->
+                                <!--         .rev() -->
+                                <!--         .take(20) -->
+                                <!--         .map( |node| view! {<a href=format!("/reports/{}", node.parent.id)> <p>{ node.parent.paciente} </p> </a>}  ) -->
+                                <!--         .collect_view()} -->
+                                <!-- </div> -->
+                          <ReportTable reports />
                             }
                                 .into_any()
                         }
@@ -178,6 +200,94 @@ pub fn Reports() -> impl IntoView {
             }}
         </Suspense>
     }
+}
+
+#[derive(Debug, Clone)]
+struct ReportRowFields {
+    pub protocolo: String,
+    pub fecha: NaiveDateTime,
+    pub paciente: String,
+    pub tipo: StudyTypeDto,
+}
+
+impl From<FullStudyDto> for ReportRowFields {
+    fn from(value: FullStudyDto) -> Self {
+        let FullStudyDto {
+            parent:
+                StudyDto {
+                    protocolo,
+                    fecha,
+                    paciente,
+                    tipo,
+                    ..
+                },
+            ..
+        } = value;
+        ReportRowFields {
+            protocolo,
+            fecha,
+            paciente,
+            tipo,
+        }
+    }
+}
+
+// pub struct StudyDto {
+//     pub id: i32,
+//     pub protocolo: String,
+//     pub fecha: NaiveDateTime,
+//     pub paciente: String,
+//     pub doctor_id: i32,
+//     pub material_id: i32,
+//     pub tipo: StudyTypeDto,
+// }
+
+#[component]
+fn ReportTable(reports: Vec<FullStudyDto>) -> impl IntoView {
+    view! {
+            <table>
+              <!-- <caption>Monthly Expenses</caption> -->
+              <thead>
+                <tr>
+                  <th>Protocolo</th>
+                  <th>Fecha</th>
+                  <th>Paciente</th>
+                  <th>Tipo</th>
+                </tr>
+              </thead>
+              <tbody>
+
+                                            {  reports
+                                                .into_iter()
+                                                .rev()
+                                                .take(20)
+                                                .map( |node| {
+                    let local_node = node.clone();
+                    let table_node: ReportRowFields  = node.into();
+                    view! {
+
+        <tr>
+                            <td>
+                    <a href=format!("/reports/{}", local_node.parent.id)>
+                                {table_node.protocolo}
+    </a>
+                            </td>
+                            <td> {format!("{:?}", table_node.fecha)} </td>
+                            <td> {table_node.paciente} </td>
+                            <td> {format!("{:?}",table_node.tipo)} </td>
+        </tr>
+
+                    } } )
+                                                .collect_view()
+
+
+                    }
+
+
+
+              </tbody>
+            </table>
+                }
 }
 
 #[component]
@@ -210,8 +320,8 @@ pub fn ReportHeader() -> impl IntoView {
         <h2>"Header"</h2>
         <Form method="GET" action="">
             // input names determine query string key
-            <div class="flex flex-col max-w-lg">
-                <div class="flex-2 justify-around">
+            <div class="flex flex-col max-w-lg justify-around">
+                <div class="flex-2 ">
                     <label for="protocolo">Protocolo</label>
                     <input type="text" name="protocolo" value=protocolo />
                 </div>
@@ -229,7 +339,7 @@ pub fn ReportHeader() -> impl IntoView {
                 </div>
                 <div class="flex-2 justify-around">
                     <label for="material">Material</label>
-                    <SuggestInput field=DoctorFieldsDto::Name id="material" value=material />
+                    <SuggestInput field=MaterialFieldsDto::Name id="material" value=material />
                 </div>
                 <div class="border-b-slate-400">
                     <select
