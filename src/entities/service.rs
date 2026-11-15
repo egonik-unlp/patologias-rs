@@ -1,7 +1,7 @@
 use crate::{
     core::database::repository::AsyncLayer,
     entities::{
-        dto::{DoctorFieldsDto, MaterialFieldsDto},
+        dto::{DoctorDto, DoctorFieldsDto, MaterialFieldsDto, MaterialsDto},
         model::{NewDoctor, NewMaterial},
         repository::{DoctorRepository, MaterialRepository},
     },
@@ -45,5 +45,15 @@ impl EntitiesService {
         field: MaterialFieldsDto,
     ) -> anyhow::Result<Vec<String>> {
         self.materials_repository.get_suggestions(field, 20).await
+    }
+
+    pub async fn get_doctor_by_id(&self, id: i32) -> anyhow::Result<DoctorDto> {
+        self.doctors_repository.read(id).await.map(DoctorDto::from)
+    }
+    pub async fn get_material_by_id(&self, id: i32) -> anyhow::Result<MaterialsDto> {
+        self.materials_repository
+            .read(id)
+            .await
+            .map(MaterialsDto::from)
     }
 }

@@ -4,12 +4,21 @@ use diesel::{
 };
 use serde::{Deserialize, Serialize};
 
+use crate::entities::dto::{DoctorDto, MaterialsDto};
+
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
 #[diesel(table_name= crate::core::database::schema::doctors)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Doctor {
-    id: i32,
-    name: String,
+    pub id: i32,
+    pub name: String,
+}
+
+impl From<Doctor> for DoctorDto {
+    fn from(value: Doctor) -> Self {
+        let Doctor { id, name } = value;
+        DoctorDto { id, name }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Queryable, Selectable, Identifiable)]
@@ -18,6 +27,13 @@ pub struct Doctor {
 pub struct Material {
     id: i32,
     name: String,
+}
+
+impl From<Material> for MaterialsDto {
+    fn from(value: Material) -> Self {
+        let Material { id, name } = value;
+        MaterialsDto { id, name }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset)]
