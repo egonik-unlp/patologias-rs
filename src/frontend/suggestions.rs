@@ -26,7 +26,7 @@ pub fn SuggestInput(
             class="border-2 border-b-slate-700"
             type="text"
             id=id.clone()
-            name
+            name=name
             list=list_id.clone()
             autocomplete="off"
             value=value

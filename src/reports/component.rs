@@ -1,6 +1,5 @@
-use crate::entities::server::{get_all_doctors, get_all_materials};
 use crate::{
-    entities::dto::{DoctorFieldsDto, MaterialFieldsDto},
+    entities::server::{get_all_doctors, get_all_materials},
     frontend::suggestions::SuggestInput,
     reports::{
         dto::{
@@ -269,10 +268,14 @@ pub fn CreateReport() -> impl IntoView {
                 <ReportHeader tipo=tipo />
 
                 // child fields: inputs inside these are named study[child][<Variant>][...]
-                {move || match tipo.get() {
+                {
+                    move ||
+                    match tipo.get() {
                     StudyTypeDto::Histopatologia => view! { <Histopatologia /> }.into_any(),
                     StudyTypeDto::Citologia => view! { <Citologias /> }.into_any(),
-                }}
+                } }
+                {
+                }
             </Transition>
 
             <button type="submit">"Guardar"</button>
@@ -285,8 +288,6 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
     // set these when a suggestion is picked (see note below)
     let doctor_id = RwSignal::new(None::<i32>);
     let material_id = RwSignal::new(None::<i32>);
-    let id_str =
-        |s: RwSignal<Option<i32>>| move || s.get().map(|v| v.to_string()).unwrap_or_default();
     let doctors = OnceResource::new(get_all_doctors());
     let materials = OnceResource::new(get_all_materials());
     view! {
@@ -314,28 +315,34 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
         // TODO: De acá se va SuggestInput y deberia venir directamente de la DB.
 
                 <label for="doctor">"Doctor"</label>
-                <!-- <SuggestInput field=DoctorFieldsDto::Name id="doctor"  value=|| String::new()/> -->
                 <select
                 id="doctor-id"
                 name="study[parent][doctor_id]"
                 on:change:target= move |ev| {
-                   let v =  ev.target().value();
+                   let v: i32 =  ev.target().value().parse().expect("Failed parsing doctor-id");
+                    doctor_id.set(Some(v));
                 }
                 >
                 {
-                    doctors.into_iter().map(|doctor|  view!{ <option value=doctor.clone().name> {doctor.clone().name} </option> }  ).collect_view()
+                    doctors.into_iter().map(|doctor|  view!{ <option value=doctor.clone().id> {doctor.clone().name} </option> }  ).collect_view()
                 }
                 </select>
-                <input type="hidden" name="study[parent][doctor_id]" value=id_str(doctor_id) />
 
 
                 <label for="material">"Material"</label>
-                <!-- <SuggestInput field=MaterialFieldsDto::Name id="material"  value=|| String::new()/> -->
 
-                <input type="hidden" name="study[parent][material_id]" value=id_str(material_id) />
-
-    //
-
+                <select
+                id="material-id"
+                name="study[parent][material_id]"
+                on:change:target= move |ev| {
+                   let v: i32 =  ev.target().value().parse().expect("Failed parsing material-id");
+                    material_id.set(Some(v));
+                }
+                >
+                {
+                    materials.into_iter().map(|material|  view!{ <option value=material.id> {material.name} </option> }  ).collect_view()
+                }
+                </select>
 
 
                 <label for="tipo">"Tipo"</label>
@@ -361,105 +368,8 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
 
     }
     </Suspense>
-
-
-
         }
 }
-
-//
-// #[component]
-// pub fn CreateReport() -> impl IntoView {
-//     let (rep_type, set_rep_type) = signal(StudyTypeDto::Citologia);
-//     _ = (set_rep_type, rep_type);
-//     let action = ServerAction::<CreateStudy>::new();
-//
-//     view! {
-//
-//     <ActionForm action=action>
-//     </ActionForm>
-//
-//
-//
-//             <div class="flex-2">
-//                 <ReportHeader />
-//             </div>
-//         }
-// }
-//
-// #[component]
-// pub fn ReportHeader() -> impl IntoView {
-//     // reactive access to URL query
-//     let query = use_query_map();
-//     let protocolo = move || query.read().get("number").unwrap_or_default();
-//     let fecha = move || query.read().get("select").unwrap_or_default();
-//     let paciente = move || query.read().get("paciente").unwrap_or_default();
-//     let doctor = move || query.read().get("name").unwrap_or_default();
-//     let material = move || query.read().get("name").unwrap_or_default();
-//     let selected_type = RwSignal::new(String::from("Citologia"));
-//     view! {
-//         <h2>"Header"</h2>
-//         <Form method="GET" action="">
-//             // input names determine query string key
-//             <div class="flex flex-col max-w-lg justify-around">
-//                 <div class="flex-2 ">
-//                     <label for="protocolo">Protocolo</label>
-//                     <input type="text" name="protocolo" value=protocolo />
-//                 </div>
-//                 <div class="flex-2 justify-around">
-//                     <label for="fecha">Fecha</label>
-//                     <input type="text" name="fecha" value=fecha />
-//                 </div>
-//                 <div class="flex-2 justify-around">
-//                     <label for="paciente">Paciente</label>
-//                     <input type="text" name="paciente" value=paciente />
-//                 </div>
-//                 <div class="flex-2 justify-around">
-//                     <label for="doctor">Doctor</label>
-//                     <SuggestInput field=DoctorFieldsDto::Name id="doctor" value=doctor />
-//                 </div>
-//                 <div class="flex-2 justify-around">
-//                     <label for="material">Material</label>
-//                     <SuggestInput field=MaterialFieldsDto::Name id="material" value=material />
-//                 </div>
-//                 <div class="border-b-slate-400max-w-lg bg-center border-b-slate-700">
-//                     <select
-//                         name="report_type"
-//                         id="report_type"
-//                         prop:value=move || selected_type.get()
-//                         on:change:target=move |ev| {
-//                             if let Ok(parsed) = StudyTypeDto::from_str(&ev.target().value()) {
-//                                 let stri = parsed.clone().to_string();
-//                                 selected_type.set(stri.clone());
-//                             }
-//                         }
-//                     >
-//                         <option value="Citologia">Citopatologia</option>
-//                         <option value="Histopatologia">Histopatologia</option>
-//                     </select>
-//                     >
-//
-//                 </div>
-//
-//             </div>
-//             // submitting should cause a client-side
-//             // navigation, not a full reload
-//             <input type="submit" />
-//         </Form>
-//         <Transition fallback=move || {
-//             view! { <p>"Loudi"</p> }
-//         }>
-//             {move || {
-//                 let sel_val = selected_type.get();
-//                 match StudyTypeDto::from_str(&sel_val) {
-//                     Ok(StudyTypeDto::Histopatologia) => view! { <Histopatologia /> }.into_any(),
-//                     Ok(StudyTypeDto::Citologia) => view! { <Citologias /> }.into_any(),
-//                     Err(_) => view! { <p>Nada para ver aqui bro</p> }.into_any(),
-//                 }
-//             }}
-//         </Transition>
-//     }
-// }
 
 // No <Form> in here: this renders inside CreateReport's <ActionForm>, and
 // HTML forms can't be nested.
