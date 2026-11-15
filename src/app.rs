@@ -47,7 +47,7 @@ pub fn App() -> impl IntoView {
                 <Routes fallback=|| "Page not found.".into_view()>
                     <Route path=StaticSegment("") view=HomePage />
                     <Route path=path!("/reports") view=Reports />
-                    <Route path=path!("/reports/:id") view=Report/>
+                    <Route path=path!("/reports/:id") view=Report />
                     <Route path=path!("/create_report") view=CreateReport />
                 </Routes>
             </main>

@@ -6,3 +6,5 @@ pub mod repository;
 pub mod server;
 #[cfg(feature = "ssr")]
 pub mod service;
+
+pub mod component;

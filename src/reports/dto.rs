@@ -16,6 +16,26 @@ pub struct NewFullStudyDto {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StudyDto {
+    pub id: i32,
+    pub protocolo: String,
+    pub fecha: NaiveDateTime,
+    pub paciente: String,
+    pub doctor_id: i32,
+    pub material_id: i32,
+    pub tipo: StudyTypeDto,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct NewStudyDto {
+    pub protocolo: String,
+    pub fecha: NaiveDateTime,
+    pub paciente: String,
+    pub doctor_id: i32,
+    pub material_id: i32,
+    pub tipo: StudyTypeDto,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum StudyDetailDto {
     Histopatologia(HistopatologiaDto),
     Citologia(CitologiaDto),
@@ -33,7 +53,7 @@ impl Display for StudyTypeDto {
             StudyTypeDto::Histopatologia => "Histopatologia",
             StudyTypeDto::Citologia => "Citologia",
         };
-        writeln!(f, "{}", s)
+        write!(f, "{}", s)
     }
 }
 
@@ -56,26 +76,6 @@ pub struct HistopatologiaDto {
     pub diagnostico_histopatologico: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct NewStudyDto {
-    pub protocolo: String,
-    pub fecha: NaiveDateTime,
-    pub paciente: String,
-    pub doctor_id: i32,
-    pub material_id: i32,
-    pub tipo: StudyTypeDto,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct StudyDto {
-    pub id: i32,
-    pub protocolo: String,
-    pub fecha: NaiveDateTime,
-    pub paciente: String,
-    pub doctor_id: i32,
-    pub material_id: i32,
-    pub tipo: StudyTypeDto,
-}
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum CitoFields {
     Microflora,
@@ -107,6 +107,7 @@ pub struct ParseReportTypeError;
 impl FromStr for StudyTypeDto {
     type Err = ParseReportTypeError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let s = s.trim();
         match s {
             "Histopatologia" | "histopatologia" => Ok(StudyTypeDto::Histopatologia),
             "Citologia" | "citologia" => Ok(StudyTypeDto::Citologia),

@@ -1,6 +1,6 @@
 use crate::{
     frontend::suggestions::Suggestions,
-    reports::dto::{FullStudyDto, ReportFieldsDto, StudyDto},
+    reports::dto::{FullStudyDto, NewFullStudyDto, ReportFieldsDto, StudyDto},
 };
 use leptos::prelude::*;
 
@@ -56,4 +56,20 @@ impl Suggestions for ReportFieldsDto {
     {
         get_suggestions_for_report(self.clone())
     }
+}
+
+#[server]
+pub async fn create_study(study: NewFullStudyDto) -> Result<FullStudyDto, ServerFnError> {
+    use crate::entrypoint::application_state::AppState;
+    use leptos::logging::log;
+
+    log!("Creando estudio: {:?}", study);
+    let context =
+        use_context::<AppState>().ok_or_else(|| ServerFnError::new("Failed to get state"))?;
+    context
+        .reports_service
+        .create_study(study)
+        .await
+        .map_err(ServerFnError::new)
+        .map(FullStudyDto::from)
 }
