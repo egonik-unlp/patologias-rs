@@ -56,4 +56,17 @@ impl EntitiesService {
             .await
             .map(MaterialsDto::from)
     }
+    pub async fn get_all_doctors(&self) -> anyhow::Result<Vec<DoctorDto>> {
+        self.doctors_repository
+            .read_all()
+            .await
+            .map(|val| val.into_iter().map(DoctorDto::from).collect())
+    }
+
+    pub async fn get_all_materials(&self) -> anyhow::Result<Vec<MaterialsDto>> {
+        self.materials_repository
+            .read_all()
+            .await
+            .map(|val| val.into_iter().map(MaterialsDto::from).collect())
+    }
 }

@@ -1,5 +1,4 @@
-use std::str::FromStr;
-
+use crate::entities::server::{get_all_doctors, get_all_materials};
 use crate::{
     entities::dto::{DoctorFieldsDto, MaterialFieldsDto},
     frontend::suggestions::SuggestInput,
@@ -11,6 +10,7 @@ use crate::{
         server::{read_all, read_report, CreateStudy},
     },
 };
+use std::str::FromStr;
 
 use chrono::NaiveDateTime;
 use leptos::prelude::*;
@@ -287,42 +287,84 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
     let material_id = RwSignal::new(None::<i32>);
     let id_str =
         |s: RwSignal<Option<i32>>| move || s.get().map(|v| v.to_string()).unwrap_or_default();
-
+    let doctors = OnceResource::new(get_all_doctors());
+    let materials = OnceResource::new(get_all_materials());
     view! {
-        <h2>"Header"</h2>
-        <div class="flex flex-col max-w-lg justify-around">
-            <label for="protocolo">"Protocolo"</label>
-            <input type="text" id="protocolo" name="study[parent][protocolo]" />
+    <Suspense
+        fallback=|| view! { "hola" }
+    >
+    {
+        move || Suspend::new(async move  {
+        let doctors = doctors.await.unwrap();
+        let materials = materials.await.unwrap();
+        view! {
 
-            <label for="fecha">"Fecha"</label>
-            <input type="datetime-local" id="fecha" name="study[parent][fecha]" />
+            <h2>"Header"</h2>
+            <div class="flex flex-col max-w-lg justify-around">
+                <label for="protocolo">"Protocolo"</label>
+                <input type="text" id="protocolo" name="study[parent][protocolo]" />
 
-            <label for="paciente">"Paciente"</label>
-            <input type="text" id="paciente" name="study[parent][paciente]" />
+                <label for="fecha">"Fecha"</label>
+                <input type="datetime-local" id="fecha" name="study[parent][fecha]" />
 
-            <label for="doctor">"Doctor"</label>
-            <SuggestInput field=DoctorFieldsDto::Name id="doctor"  value=|| String::new()/>
-            <input type="hidden" name="study[parent][doctor_id]" value=id_str(doctor_id) />
+                <label for="paciente">"Paciente"</label>
+                <input type="text" id="paciente" name="study[parent][paciente]" />
 
-            <label for="material">"Material"</label>
-            <SuggestInput field=MaterialFieldsDto::Name id="material"  value=|| String::new()/>
-            <input type="hidden" name="study[parent][material_id]" value=id_str(material_id) />
 
-            <label for="tipo">"Tipo"</label>
-            <select
-                id="tipo"
-                name="study[parent][tipo]"
-                on:change:target=move |ev| {
-                    if let Ok(t) = StudyTypeDto::from_str(&ev.target().value()) {
-                        tipo.set(t);
-                    }
+        // TODO: De acá se va SuggestInput y deberia venir directamente de la DB.
+
+                <label for="doctor">"Doctor"</label>
+                <!-- <SuggestInput field=DoctorFieldsDto::Name id="doctor"  value=|| String::new()/> -->
+                <select
+                id="doctor-id"
+                name="study[parent][doctor_id]"
+                on:change:target= move |ev| {
+                   let v =  ev.target().value();
                 }
-            >
-                <option value="Citologia">"Citopatologia"</option>
-                <option value="Histopatologia">"Histopatologia"</option>
-            </select>
-        </div>
+                >
+                {
+                    doctors.into_iter().map(|doctor|  view!{ <option value=doctor.clone().name> {doctor.clone().name} </option> }  ).collect_view()
+                }
+                </select>
+                <input type="hidden" name="study[parent][doctor_id]" value=id_str(doctor_id) />
+
+
+                <label for="material">"Material"</label>
+                <!-- <SuggestInput field=MaterialFieldsDto::Name id="material"  value=|| String::new()/> -->
+
+                <input type="hidden" name="study[parent][material_id]" value=id_str(material_id) />
+
+    //
+
+
+
+                <label for="tipo">"Tipo"</label>
+                <select
+                    id="tipo"
+                    name="study[parent][tipo]"
+                    on:change:target=move |ev| {
+                        if let Ok(t) = StudyTypeDto::from_str(&ev.target().value()) {
+                            tipo.set(t);
+                        }
+                    }
+                >
+                    <option value="Citologia">"Citopatologia"</option>
+                    <option value="Histopatologia">"Histopatologia"</option>
+                </select>
+            </div>
+
+        }
+
+        })
+
+
+
     }
+    </Suspense>
+
+
+
+        }
 }
 
 //

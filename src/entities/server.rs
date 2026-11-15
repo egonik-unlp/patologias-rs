@@ -3,7 +3,7 @@ use std::future::Future;
 use leptos::prelude::*;
 
 use crate::{
-    entities::dto::{DoctorFieldsDto, MaterialFieldsDto},
+    entities::dto::{DoctorDto, DoctorFieldsDto, MaterialFieldsDto, MaterialsDto},
     frontend::suggestions::Suggestions,
 };
 
@@ -26,6 +26,26 @@ pub async fn get_suggestions_for_materials(
     let ctx = use_context::<AppState>().ok_or_else(|| ServerFnError::new("cant get appstate"))?;
     ctx.entities_service
         .get_suggestions_materials(field)
+        .await
+        .map_err(ServerFnError::new)
+}
+
+#[server]
+pub async fn get_all_doctors() -> Result<Vec<DoctorDto>, ServerFnError> {
+    use crate::entrypoint::application_state::AppState;
+    let ctx = use_context::<AppState>().ok_or_else(|| ServerFnError::new("cant get appstate"))?;
+    ctx.entities_service
+        .get_all_doctors()
+        .await
+        .map_err(ServerFnError::new)
+}
+
+#[server]
+pub async fn get_all_materials() -> Result<Vec<MaterialsDto>, ServerFnError> {
+    use crate::entrypoint::application_state::AppState;
+    let ctx = use_context::<AppState>().ok_or_else(|| ServerFnError::new("cant get appstate"))?;
+    ctx.entities_service
+        .get_all_materials()
         .await
         .map_err(ServerFnError::new)
 }

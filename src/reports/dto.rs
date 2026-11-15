@@ -1,7 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
 use chrono::NaiveDateTime;
-use leptos::leptos_dom::logging;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
