@@ -1,6 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
 use chrono::NaiveDateTime;
+use leptos::leptos_dom::logging;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -29,6 +30,7 @@ pub struct StudyDto {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct NewStudyDto {
     pub protocolo: String,
+    #[serde(deserialize_with = "de_fecha")]
     pub fecha: NaiveDateTime,
     pub paciente: String,
     pub doctor_id: i32,
@@ -56,7 +58,14 @@ impl Display for StudyTypeDto {
         write!(f, "{}", s)
     }
 }
-
+fn de_fecha<'de, D: serde::Deserializer<'de>>(d: D) -> Result<NaiveDateTime, D::Error> {
+    let s = String::deserialize(d)?;
+    NaiveDateTime::parse_from_str(&s, "%Y-%m-%dT%H:%M") // what datetime-local sends
+        .or_else(|_| s.parse()) // full format, so JSON etc. still work
+        .inspect_err(|error| leptos::logging::log!("Parsing error: {}", error))
+        .inspect_err(|error| println!("Parsing error: {}", error))
+        .map_err(serde::de::Error::custom)
+}
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct CitologiaDto {
     pub microflora: Option<String>,

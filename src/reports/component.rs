@@ -37,7 +37,7 @@ macro_rules! html_and_suggestions {
                     <SuggestInput
                         field=$tp
                         id=stringify!($param)
-                        // name=concat!($prefix, "[", stringify!($param), "]")
+                        name=concat!($prefix, "[", stringify!($param), "]")
                         value=$param
                     />
                 </div>
@@ -51,7 +51,7 @@ macro_rules! html_and_suggestions {
 pub fn Report() -> impl IntoView {
     let params = use_params_map();
     let id = move || params.read().get("id").unwrap_or_default();
-    let id = id().parse::<i32>().unwrap();
+    let id = id().parse::<i32>().expect("Blew up");
     view! {
         <Await future=read_report(id) let:data>
             <ReportView report=data.clone().unwrap() />

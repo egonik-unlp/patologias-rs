@@ -14,6 +14,8 @@ pub fn SuggestInput(
     #[prop(into)] id: String,
     /// Current value (e.g. from the URL query). The form reads the edited
     /// value through `name` on submit.
+    #[prop(optional, into)]
+    name: Option<String>,
     value: impl Fn() -> String + Send + Sync + 'static,
 ) -> impl IntoView {
     let list_id = format!("{id}-options");
@@ -24,7 +26,7 @@ pub fn SuggestInput(
             class="border-2 border-b-slate-700"
             type="text"
             id=id.clone()
-            name=id
+            name
             list=list_id.clone()
             autocomplete="off"
             value=value

@@ -121,6 +121,8 @@ where
     let s = String::deserialize(deserializer)?;
     s.parse::<NaiveDateTime>()
         .or_else(|_| NaiveDateTime::parse_from_str(&s, "%Y-%m-%d %H:%M:%S%.f"))
+        .inspect_err(|error| leptos::logging::log!("Error: {:?}", error))
+        .inspect_err(|error| println!("Error: {:?}", error))
         .map_err(serde::de::Error::custom)
 }
 
