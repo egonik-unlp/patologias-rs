@@ -268,14 +268,11 @@ pub fn CreateReport() -> impl IntoView {
                 <ReportHeader tipo=tipo />
 
                 // child fields: inputs inside these are named study[child][<Variant>][...]
-                {
-                    move ||
-                    match tipo.get() {
+                {move || match tipo.get() {
                     StudyTypeDto::Histopatologia => view! { <Histopatologia /> }.into_any(),
                     StudyTypeDto::Citologia => view! { <Citologias /> }.into_any(),
-                } }
-                {
-                }
+                }}
+                {}
             </Transition>
 
             <button type="submit">"Guardar"</button>
@@ -291,84 +288,92 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
     let doctors = OnceResource::new(get_all_doctors());
     let materials = OnceResource::new(get_all_materials());
     view! {
-    <Suspense
-        fallback=|| view! { "hola" }
-    >
-    {
-        move || Suspend::new(async move  {
-        let doctors = doctors.await.unwrap();
-        let materials = materials.await.unwrap();
-        view! {
+        <Suspense fallback=|| {
+            view! { "hola" }
+        }>
+            {move || Suspend::new(async move {
+                let doctors = doctors.await.unwrap();
+                let materials = materials.await.unwrap();
+                view! {
+                    <h2>"Header"</h2>
+                    <div class="flex flex-col max-w-lg justify-around">
+                        <label for="protocolo">"Protocolo"</label>
+                        <input type="text" id="protocolo" name="study[parent][protocolo]" />
 
-            <h2>"Header"</h2>
-            <div class="flex flex-col max-w-lg justify-around">
-                <label for="protocolo">"Protocolo"</label>
-                <input type="text" id="protocolo" name="study[parent][protocolo]" />
+                        <label for="fecha">"Fecha"</label>
+                        <input type="datetime-local" id="fecha" name="study[parent][fecha]" />
 
-                <label for="fecha">"Fecha"</label>
-                <input type="datetime-local" id="fecha" name="study[parent][fecha]" />
+                        <label for="paciente">"Paciente"</label>
+                        <input type="text" id="paciente" name="study[parent][paciente]" />
 
-                <label for="paciente">"Paciente"</label>
-                <input type="text" id="paciente" name="study[parent][paciente]" />
+                        // TODO: De acá se va SuggestInput y deberia venir directamente de la DB.
 
+                        <label for="doctor">"Doctor"</label>
+                        <select
+                            id="doctor-id"
+                            name="study[parent][doctor_id]"
+                            on:change:target=move |ev| {
+                                let v: i32 = ev
+                                    .target()
+                                    .value()
+                                    .parse()
+                                    .expect("Failed parsing doctor-id");
+                                doctor_id.set(Some(v));
+                            }
+                        >
+                            {doctors
+                                .into_iter()
+                                .map(|doctor| {
+                                    view! {
+                                        <option value=doctor
+                                            .clone()
+                                            .id>{doctor.clone().name}</option>
+                                    }
+                                })
+                                .collect_view()}
+                        </select>
 
-        // TODO: De acá se va SuggestInput y deberia venir directamente de la DB.
+                        <label for="material">"Material"</label>
 
-                <label for="doctor">"Doctor"</label>
-                <select
-                id="doctor-id"
-                name="study[parent][doctor_id]"
-                on:change:target= move |ev| {
-                   let v: i32 =  ev.target().value().parse().expect("Failed parsing doctor-id");
-                    doctor_id.set(Some(v));
+                        <select
+                            id="material-id"
+                            name="study[parent][material_id]"
+                            on:change:target=move |ev| {
+                                let v: i32 = ev
+                                    .target()
+                                    .value()
+                                    .parse()
+                                    .expect("Failed parsing material-id");
+                                material_id.set(Some(v));
+                            }
+                        >
+                            {materials
+                                .into_iter()
+                                .map(|material| {
+                                    view! { <option value=material.id>{material.name}</option> }
+                                })
+                                .collect_view()}
+                        </select>
+
+                        <label for="tipo">"Tipo"</label>
+                        <select
+                            id="tipo"
+                            name="study[parent][tipo]"
+                            on:change:target=move |ev| {
+                                if let Ok(t) = StudyTypeDto::from_str(&ev.target().value()) {
+                                    tipo.set(t);
+                                }
+                            }
+                        >
+                            <option value="Citologia">"Citopatologia"</option>
+                            <option value="Histopatologia">"Histopatologia"</option>
+                        </select>
+                    </div>
                 }
-                >
-                {
-                    doctors.into_iter().map(|doctor|  view!{ <option value=doctor.clone().id> {doctor.clone().name} </option> }  ).collect_view()
-                }
-                </select>
+            })}
 
-
-                <label for="material">"Material"</label>
-
-                <select
-                id="material-id"
-                name="study[parent][material_id]"
-                on:change:target= move |ev| {
-                   let v: i32 =  ev.target().value().parse().expect("Failed parsing material-id");
-                    material_id.set(Some(v));
-                }
-                >
-                {
-                    materials.into_iter().map(|material|  view!{ <option value=material.id> {material.name} </option> }  ).collect_view()
-                }
-                </select>
-
-
-                <label for="tipo">"Tipo"</label>
-                <select
-                    id="tipo"
-                    name="study[parent][tipo]"
-                    on:change:target=move |ev| {
-                        if let Ok(t) = StudyTypeDto::from_str(&ev.target().value()) {
-                            tipo.set(t);
-                        }
-                    }
-                >
-                    <option value="Citologia">"Citopatologia"</option>
-                    <option value="Histopatologia">"Histopatologia"</option>
-                </select>
-            </div>
-
-        }
-
-        })
-
-
-
+        </Suspense>
     }
-    </Suspense>
-        }
 }
 
 // No <Form> in here: this renders inside CreateReport's <ActionForm>, and

@@ -59,17 +59,22 @@ impl Suggestions for ReportFieldsDto {
 }
 
 #[server]
-pub async fn create_study(study: NewFullStudyDto) -> Result<FullStudyDto, ServerFnError> {
+pub async fn create_study(study: NewFullStudyDto) -> Result<(), ServerFnError> {
     use crate::entrypoint::application_state::AppState;
     use leptos::logging::log;
 
     log!("Creando estudio: {:?}", study);
     let context =
         use_context::<AppState>().ok_or_else(|| ServerFnError::new("Failed to get state"))?;
-    context
+    match context
         .reports_service
         .create_study(study)
         .await
         .map_err(ServerFnError::new)
         .map(FullStudyDto::from)
+    {
+        Ok(study) => leptos_axum::redirect("/create_report"),
+        Err(error) => log!("Error => {}", error),
+    }
+    Ok(())
 }

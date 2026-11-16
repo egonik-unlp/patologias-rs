@@ -1,13 +1,49 @@
+use crate::entities::server::{get_all_doctors, get_all_materials};
 use leptos::prelude::*;
+#[component]
+fn Doctors() -> impl IntoView {
+    view! {
+        <div>
+            <Await future=get_all_doctors() let:data>
+                {data
+                    .clone()
+                    .unwrap()
+                    .iter()
+                    .map(|doctor| view! { <p>{doctor.name.clone()}</p> })
+                    .collect_view()}
+            </Await>
+        </div>
+    }
+}
 
 #[component]
-pub fn Doctors() -> impl IntoView {}
+fn Materials() -> impl IntoView {
+    view! {
+        <div>
+            <Await future=get_all_materials() let:data>
+                {data
+                    .clone()
+                    .unwrap()
+                    .iter()
+                    .map(|material| view! { <p>{material.name.clone()}</p> })
+                    .collect_view()}
+            </Await>
+        </div>
+    }
+}
 
 #[component]
-pub fn Materials() -> impl IntoView {}
+pub fn Entities() -> impl IntoView {
+    view! {
+        <div class="flex">
+            <Doctors />
+            <Materials />
+        </div>
+    }
+}
 
 #[component]
-pub fn CreateDoctor() -> impl IntoView {}
+fn CreateDoctor() -> impl IntoView {}
 
 #[component]
-pub fn CreateMaterial() -> impl IntoView {}
+fn CreateMaterial() -> impl IntoView {}
