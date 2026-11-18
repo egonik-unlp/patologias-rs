@@ -6,7 +6,7 @@ use diesel::{
 use diesel_derive_enum::DbEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::users::dto::RoleDto;
+use crate::users::dto::{RoleDto, UserDto};
 
 #[derive(Debug, Deserialize, Serialize, DbEnum, Clone)]
 #[serde(rename_all = "lowercase")]
@@ -62,6 +62,36 @@ impl From<RoleDto> for Role {
         match value {
             RoleDto::Operator => Role::Operator,
             RoleDto::Admin => Role::Admin,
+        }
+    }
+}
+
+impl From<Role> for RoleDto {
+    fn from(value: Role) -> Self {
+        match value {
+            Role::Operator => RoleDto::Operator,
+            Role::Admin => RoleDto::Admin,
+        }
+    }
+}
+impl From<User> for UserDto {
+    fn from(value: User) -> Self {
+        let User {
+            id,
+            username,
+            full_name,
+            role,
+            active,
+            ..
+        } = value;
+        let role = role.into();
+
+        UserDto {
+            username,
+            full_name,
+            id,
+            role,
+            active,
         }
     }
 }

@@ -68,8 +68,7 @@ pub trait AsyncLayer: DatabaseRepository {
 // Lo genera `impl_repository!` con la opción `belongs_to(...)`.
 pub trait AsyncBelongsTo: AsyncLayer {
     type ParentId;
-    async fn read_by_parent(&self, parent_id: Self::ParentId)
-        -> anyhow::Result<Vec<Self::Model>>;
+    async fn read_by_parent(&self, parent_id: Self::ParentId) -> anyhow::Result<Vec<Self::Model>>;
     /// Devuelve la cantidad de filas borradas.
     async fn delete_by_parent(&self, parent_id: Self::ParentId) -> anyhow::Result<usize>;
 }
@@ -109,6 +108,7 @@ macro_rules! impl_repository {
                     .values(new)
                     .returning(<$model>::as_returning())
                     .get_result(conn)
+                    .inspect_err(|err| ::leptos::logging::log!("Error {}",err))
                     .map_err(Into::into)
             }
             fn _read(
@@ -122,6 +122,7 @@ macro_rules! impl_repository {
                     .find(id)
                     .select(<$model>::as_select())
                     .first(conn)
+                    .inspect_err(|err| ::leptos::logging::log!("Error {}",err))
                     .map_err(Into::into)
             }
 
@@ -133,6 +134,7 @@ macro_rules! impl_repository {
                 $table::table
                     .select(<$model>::as_select())
                     .get_results(conn)
+                    .inspect_err(|err| ::leptos::logging::log!("Error {}",err))
                     .map_err(Into::into)
             }
             fn _update(
@@ -146,6 +148,7 @@ macro_rules! impl_repository {
                     .set(changes)
                     .returning(<$model>::as_returning())
                     .get_result(conn)
+                    .inspect_err(|err| ::leptos::logging::log!("Error {}",err))
                     .map_err(Into::into)
             }
             fn _delete(
@@ -157,6 +160,7 @@ macro_rules! impl_repository {
                 diesel::delete($table::table.find(id))
                     .execute(conn)
                     .map(|_| ())
+                    .inspect_err(|err| ::leptos::logging::log!("Error {}",err))
                     .map_err(Into::into)
             }
         }

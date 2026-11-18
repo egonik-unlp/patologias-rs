@@ -55,8 +55,10 @@ impl UserService {
         Ok(ok.then_some(user))
     }
 
-    pub async fn login_user(&self, user_name: String, password: &str) -> anyhow::Result<()> {
-        todo!()
+    pub async fn login_user(&self, user_name: String, password: &str) -> anyhow::Result<User> {
+        self.check_password(user_name.as_str(), password)
+            .await?
+            .context("Nonexistant user")
     }
 }
 
