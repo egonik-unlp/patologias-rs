@@ -1,3 +1,4 @@
+pub mod component;
 pub mod dto;
 #[cfg(feature = "ssr")]
 pub mod model;

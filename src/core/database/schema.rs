@@ -2,8 +2,8 @@
 
 pub mod sql_types {
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
-    #[diesel(postgres_type(name = "privilegies"))]
-    pub struct Privilegies;
+    #[diesel(postgres_type(name = "roles"))]
+    pub struct Roles;
 
     #[derive(diesel::query_builder::QueryId, diesel::sql_types::SqlType)]
     #[diesel(postgres_type(name = "study_type"))]
@@ -50,6 +50,16 @@ diesel::table! {
 }
 
 diesel::table! {
+    sessions (id) {
+        id -> Int4,
+        #[max_length = 255]
+        token -> Varchar,
+        user_id -> Int4,
+        expires_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     use diesel::sql_types::*;
     use super::sql_types::StudyType;
 
@@ -70,18 +80,23 @@ diesel::table! {
 
 diesel::table! {
     use diesel::sql_types::*;
-    use super::sql_types::Privilegies;
+    use super::sql_types::Roles;
 
     users (id) {
         id -> Int4,
         #[max_length = 255]
         username -> Varchar,
-        privilegies -> Nullable<Privilegies>,
+        #[max_length = 255]
+        full_name -> Varchar,
+        password_hash -> Text,
+        role -> Roles,
+        active -> Bool,
     }
 }
 
 diesel::joinable!(citologias -> studies (study_id));
 diesel::joinable!(histopatologias -> studies (study_id));
+diesel::joinable!(sessions -> users (user_id));
 diesel::joinable!(studies -> doctors (doctor_id));
 diesel::joinable!(studies -> materials (material_id));
 
@@ -90,6 +105,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     doctors,
     histopatologias,
     materials,
+    sessions,
     studies,
     users,
 );

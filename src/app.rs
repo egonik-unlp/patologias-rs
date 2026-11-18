@@ -1,5 +1,6 @@
 use crate::entities::component::Entities;
 use crate::reports::component::{CreateReport, Report, Reports};
+use crate::users::component::CreateUser;
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
 use leptos_router::path;
@@ -42,6 +43,7 @@ pub fn App() -> impl IntoView {
             <a href="/create_report">"New Report"</a>
             <a href="/reports">"Reports"</a>
             <a href="/entities">"Entities"</a>
+            <a href="/create_user">"Create User"</a>
         </nav>
         // content for this welcome page
         <Router>
@@ -52,6 +54,7 @@ pub fn App() -> impl IntoView {
                     <Route path=path!("/reports/:id") view=Report />
                     <Route path=path!("/create_report") view=CreateReport />
                     <Route path=path!("/entities") view=Entities />
+                    <Route path=path!("/create_user") view=CreateUser/>
                 </Routes>
             </main>
         </Router>

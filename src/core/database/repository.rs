@@ -62,6 +62,18 @@ pub trait AsyncLayer: DatabaseRepository {
     async fn read_all(&self) -> anyhow::Result<Vec<Self::Model>>;
 }
 
+// Repositorio de un hijo con ciclo de vida propio (1:N, p. ej. User -> Session).
+// El padre no sabe nada del hijo: se crea/borra/lee por su cuenta. El borrado en
+// cascada al eliminar el padre lo resuelve la FK (`on delete cascade`).
+// Lo genera `impl_repository!` con la opción `belongs_to(...)`.
+pub trait AsyncBelongsTo: AsyncLayer {
+    type ParentId;
+    async fn read_by_parent(&self, parent_id: Self::ParentId)
+        -> anyhow::Result<Vec<Self::Model>>;
+    /// Devuelve la cantidad de filas borradas.
+    async fn delete_by_parent(&self, parent_id: Self::ParentId) -> anyhow::Result<usize>;
+}
+
 #[macro_export]
 macro_rules! impl_repository {
     (@repository, $model: ty ) => {
@@ -209,6 +221,48 @@ macro_rules! impl_repository {
 
         }
 }
+    };
+    // Hijo con ciclo de vida propio (1:N):
+    // impl_repository!(async, Session, sessions, i32, NewSession, belongs_to(user_id: i32));
+    // Genera `SessionRepository` con el CRUD normal (AsyncLayer) más
+    // `read_by_parent` / `delete_by_parent` (AsyncBelongsTo). El padre se
+    // declara como un repositorio plano.
+    ( async, $model:ident, $table:ident, $id:ty, $new:ty,
+      belongs_to($fk:ident : $parent_id:ty) $(,)? ) => {
+        impl_repository!(async, $model, $table, $id, $new);
+        impl_repository!(@belongs_to, $model, $table, $fk, $parent_id);
+    };
+
+    (@belongs_to, $model:ident, $table:ident, $fk:ident, $parent_id:ty) => {
+        pastey::paste! {
+        impl $crate::core::database::repository::AsyncBelongsTo for [<$model Repository>] {
+            type ParentId = $parent_id;
+
+            async fn read_by_parent(&self, parent_id: $parent_id) -> anyhow::Result<Vec<$model>> {
+                $crate::core::database::connection::interact(&self.pool, move |conn| {
+                    use anyhow::Context;
+                    use diesel::prelude::*;
+                    $table::table
+                        .filter($table::$fk.eq(parent_id))
+                        .select(<$model>::as_select())
+                        .load(conn)
+                        .context("reading by parent")
+                })
+                .await
+            }
+
+            async fn delete_by_parent(&self, parent_id: $parent_id) -> anyhow::Result<usize> {
+                $crate::core::database::connection::interact(&self.pool, move |conn| {
+                    use anyhow::Context;
+                    use diesel::prelude::*;
+                    diesel::delete($table::table.filter($table::$fk.eq(parent_id)))
+                        .execute(conn)
+                        .context("deleting by parent")
+                })
+                .await
+            }
+        }
+        }
     };
     // Padre con hijos:
     // impl_repository!(async, Study, studies, i32, NewStudy,

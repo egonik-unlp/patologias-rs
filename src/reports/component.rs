@@ -15,6 +15,7 @@ use chrono::NaiveDateTime;
 use leptos::prelude::*;
 use leptos_router::hooks::use_params_map;
 
+#[macro_export]
 macro_rules! query_map_to_field {
     ( $($param:ident),*   ) => {
         let query = leptos_router::hooks::use_query_map();
@@ -26,6 +27,7 @@ macro_rules! query_map_to_field {
 
 // `$prefix` is the form-name path of the struct these fields belong to, e.g.
 // "study[child][Citologia]" -> inputs named "study[child][Citologia][microflora]", ...
+#[macro_export]
 macro_rules! html_and_suggestions {
     ($prefix:literal; $(($param:ident, $tp:expr)),* $(,)?) => {
         view! {
