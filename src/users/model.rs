@@ -1,21 +1,24 @@
 use chrono::{DateTime, Utc};
 use diesel::{
-    associations::Identifiable, deserialize::Queryable, prelude::Insertable,
-    query_builder::AsChangeset, Selectable,
+    associations::{Associations, Identifiable},
+    deserialize::Queryable,
+    prelude::Insertable,
+    query_builder::AsChangeset,
+    Selectable,
 };
 use diesel_derive_enum::DbEnum;
 use serde::{Deserialize, Serialize};
 
-use crate::users::dto::{RoleDto, UserDto};
+use crate::users::dto::{NewSessionDto, RoleDto, SessionDto, UserDto};
 
-#[derive(Debug, Deserialize, Serialize, DbEnum, Clone)]
+#[derive(Debug, Deserialize, Serialize, DbEnum, Clone, PartialEq)]
 #[serde(rename_all = "lowercase")]
 #[ExistingTypePath = "crate::core::database::schema::sql_types::Roles"]
 pub enum Role {
     Admin,
     Operator,
 }
-#[derive(Debug, Clone, Deserialize, Serialize, Identifiable, Queryable, Selectable)]
+#[derive(Debug, Clone, Deserialize, Serialize, Identifiable, Queryable, Selectable, PartialEq)]
 #[diesel(table_name= crate::core::database::schema::users)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct User {
@@ -38,7 +41,18 @@ pub struct NewUser {
     pub password_hash: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize, Identifiable, Queryable, Selectable)]
+#[derive(
+    Debug,
+    Clone,
+    Deserialize,
+    Serialize,
+    Identifiable,
+    Queryable,
+    Selectable,
+    Associations,
+    PartialEq,
+)]
+#[diesel(belongs_to(User))]
 #[diesel(table_name= crate::core::database::schema::sessions)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Session {
@@ -92,6 +106,37 @@ impl From<User> for UserDto {
             id,
             role,
             active,
+        }
+    }
+}
+
+impl From<Session> for SessionDto {
+    fn from(value: Session) -> Self {
+        let Session {
+            id,
+            token,
+            user_id,
+            expires_at,
+        } = value;
+        SessionDto {
+            id,
+            token,
+            user_id,
+            expires_at,
+        }
+    }
+}
+impl From<NewSessionDto> for NewSession {
+    fn from(value: NewSessionDto) -> Self {
+        let NewSessionDto {
+            token,
+            user_id,
+            expires_at,
+        } = value;
+        NewSession {
+            token,
+            expires_at,
+            user_id,
         }
     }
 }

@@ -31,3 +31,22 @@ impl UserRepository {
         .await
     }
 }
+impl SessionRepository {
+    pub async fn get_session_by_user(&self, username: &str) -> anyhow::Result<Option<Session>> {
+        let username = username.to_owned();
+        interact(&self.pool, move |conn| {
+            use diesel::prelude::*;
+            let user = users::table
+                .filter(users::username.eq(username))
+                .select(User::as_select())
+                .first(conn)
+                .context("finding user by username")?;
+            Session::belonging_to(&user)
+                .select(Session::as_select())
+                .get_result(conn)
+                .optional()
+                .context("finding sesion by user")
+        })
+        .await
+    }
+}

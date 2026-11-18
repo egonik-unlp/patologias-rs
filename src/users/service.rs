@@ -1,7 +1,7 @@
 use crate::{
     core::database::repository::AsyncLayer,
     users::{
-        dto::NewUserDto,
+        dto::{NewSessionDto, NewUserDto, SessionDto},
         model::{NewUser, User},
         repository::{SessionRepository, UserRepository},
     },
@@ -12,6 +12,9 @@ use argon2::{
     password_hash::{phc::PasswordHash, PasswordHasher, PasswordVerifier},
     Argon2,
 };
+use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
+use chrono::{Duration, Utc};
+use getrandom::fill;
 
 #[derive(Debug, Clone)]
 pub struct UserService {
@@ -60,8 +63,36 @@ impl UserService {
             .await?
             .context("Nonexistant user")
     }
+    pub async fn create_session(&self, user: User) -> anyhow::Result<SessionDto> {
+        let token = generate_session_token().context("Generating session token")?;
+        let user_id = user.id;
+        let expires_at = Utc::now() + Duration::days(7);
+        let insertable = NewSessionDto {
+            token,
+            user_id,
+            expires_at,
+        };
+        self.sessions
+            .create(insertable.into())
+            .await
+            .map(SessionDto::from)
+    }
+    pub async fn get_session_by_user(
+        &self,
+        username: String,
+    ) -> anyhow::Result<Option<SessionDto>> {
+        self.sessions
+            .get_session_by_user(username.as_str())
+            .await
+            .map(|session| session.map(SessionDto::from))
+    }
 }
 
+fn generate_session_token() -> Result<String, getrandom::Error> {
+    let mut bytes = [0u8; 32];
+    fill(&mut bytes)?;
+    Ok(URL_SAFE_NO_PAD.encode(bytes))
+}
 fn hash_password(password: &str) -> Result<String, argon2::password_hash::Error> {
     // Argon2id por defecto; genera una sal aleatoria (feature `getrandom`).
     let hash = Argon2::default().hash_password(password.as_bytes())?;

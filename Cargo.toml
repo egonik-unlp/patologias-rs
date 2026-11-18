@@ -30,8 +30,9 @@ chrono = { version = "0.4.45", features = ["serde"] }
 
 diesel_migrations = { version = "2.3.2", optional = true }
 dotenvy = { version = "0.15.7", optional = true }
-
-
+axum-extra = { version = "0.12.6", features = ["cookie"], optional = true }
+base64 = { version = "0.23.1", optional = true }
+getrandom = { version = "0.4.3", optional = true }
 csv = { version = "1.4.0" }
 serde_json = { version = "1.0.154" }
 pastey = { version = "0.2.3", optional = true }
@@ -49,6 +50,9 @@ ssr = [
   "dep:diesel",
   # "dep:serde_json",
   "dep:dotenvy",
+  "dep:axum-extra",
+  "dep:base64",
+  "dep:getrandom",
   "dep:pastey",
   "dep:argon2",
   "dep:diesel-derive-enum",
