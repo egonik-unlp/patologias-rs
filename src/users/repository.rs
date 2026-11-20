@@ -1,9 +1,14 @@
 use anyhow::Context;
 
-use crate::core::database::connection::interact;
-use crate::core::database::schema::{sessions, users};
-use crate::impl_repository;
-use crate::users::model::{NewSession, NewUser, Session, User};
+use crate::{
+    core::database::{
+        connection::interact,
+        schema::{sessions, users},
+    },
+    impl_repository,
+    users::model::{NewSession, NewUser, Session, User},
+};
+use leptos::logging::log;
 
 impl_repository!(async, User, users, i32, NewUser);
 impl_repository!(
@@ -34,6 +39,7 @@ impl UserRepository {
 impl SessionRepository {
     pub async fn get_session_by_user(&self, username: &str) -> anyhow::Result<Option<Session>> {
         let username = username.to_owned();
+        log!("Get session by user called with = {}", username);
         interact(&self.pool, move |conn| {
             use diesel::prelude::*;
             let user = users::table
@@ -46,6 +52,39 @@ impl SessionRepository {
                 .get_result(conn)
                 .optional()
                 .context("finding sesion by user")
+        })
+        .await
+    }
+
+    // src/users/repository.rs, in impl SessionRepository
+    /// Usuario dueño de una sesión vigente. `None` si el token no existe,
+    /// la sesión venció o el usuario está inactivo.
+    pub async fn get_user_by_session(&self, token: &str) -> anyhow::Result<Option<User>> {
+        let token = token.to_owned();
+        interact(&self.pool, move |conn| {
+            use diesel::prelude::*;
+            sessions::table
+                .inner_join(users::table)
+                .filter(sessions::token.eq(token))
+                .filter(sessions::expires_at.gt(chrono::Utc::now()))
+                .filter(users::active.eq(true))
+                .select(User::as_select())
+                .first(conn)
+                .optional()
+                .context("finding user by session token")
+        })
+        .await
+    }
+    pub async fn get_session_by_token(&self, token: &str) -> anyhow::Result<Option<Session>> {
+        let token = token.to_owned();
+        interact(&self.pool, move |conn| {
+            use diesel::prelude::*;
+            sessions::table
+                .filter(sessions::token.eq(&token))
+                .select(Session::as_select())
+                .first(conn)
+                .optional()
+                .context("Could not find session")
         })
         .await
     }

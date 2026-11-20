@@ -1,13 +1,13 @@
 use crate::{
     core::database::repository::AsyncLayer,
     users::{
-        dto::{NewSessionDto, NewUserDto, SessionDto},
+        dto::{NewSessionDto, NewUserDto, SessionDto, UserDto},
         model::{NewUser, User},
         repository::{SessionRepository, UserRepository},
     },
 };
 
-use anyhow::Context;
+use anyhow::{bail, Context};
 use argon2::{
     password_hash::{phc::PasswordHash, PasswordHasher, PasswordVerifier},
     Argon2,
@@ -58,12 +58,19 @@ impl UserService {
         Ok(ok.then_some(user))
     }
 
-    pub async fn login_user(&self, user_name: String, password: &str) -> anyhow::Result<User> {
-        self.check_password(user_name.as_str(), password)
+    pub async fn login_user(
+        &self,
+        user_name: String,
+        password: &str,
+    ) -> anyhow::Result<(UserDto, SessionDto)> {
+        let user = self
+            .check_password(user_name.as_str(), password)
             .await?
-            .context("Nonexistant user")
+            .context("Nonexistant user")?;
+        self.create_session(user).await.context("creating session")
     }
-    pub async fn create_session(&self, user: User) -> anyhow::Result<SessionDto> {
+
+    pub async fn create_session(&self, user: User) -> anyhow::Result<(UserDto, SessionDto)> {
         let token = generate_session_token().context("Generating session token")?;
         let user_id = user.id;
         let expires_at = Utc::now() + Duration::days(7);
@@ -72,10 +79,12 @@ impl UserService {
             user_id,
             expires_at,
         };
-        self.sessions
+        let session = self
+            .sessions
             .create(insertable.into())
             .await
-            .map(SessionDto::from)
+            .map(SessionDto::from)?;
+        Ok((user.into(), session))
     }
     pub async fn get_session_by_user(
         &self,
@@ -85,6 +94,19 @@ impl UserService {
             .get_session_by_user(username.as_str())
             .await
             .map(|session| session.map(SessionDto::from))
+    }
+    pub async fn get_user_from_session(&self, cookie: &str) -> anyhow::Result<Option<UserDto>> {
+        self.sessions
+            .get_user_by_session(cookie)
+            .await
+            .map(|session| session.map(UserDto::from))
+    }
+
+    pub async fn logout_user(&self, token: &str) -> anyhow::Result<()> {
+        match self.sessions.get_session_by_token(token).await? {
+            Some(session) => self.sessions.delete(session.id).await,
+            None => bail!("No valid session for user:{}", token),
+        }
     }
 }
 

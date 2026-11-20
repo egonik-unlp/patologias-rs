@@ -1,6 +1,7 @@
 use crate::entities::component::Entities;
 use crate::reports::component::{CreateReport, Report, Reports};
-use crate::users::component::{CreateUser, LoginUser};
+use crate::users::component::{CreateUser, CurrentUser, HandleLogin, LoginUser};
+
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
 use leptos_router::path;
@@ -46,6 +47,7 @@ pub fn App() -> impl IntoView {
             <a href="/create_user">"Create User"</a>
         </nav>
         // content for this welcome page
+                <CurrentUser/>
         <Router>
             <main>
                 <Routes fallback=|| "Page not found.".into_view()>
@@ -55,6 +57,7 @@ pub fn App() -> impl IntoView {
                     <Route path=path!("/create_report") view=CreateReport />
                     <Route path=path!("/entities") view=Entities />
                     <Route path=path!("/create_user") view=CreateUser />
+                    <Route path=path!("/login") view=LoginUser />
                 </Routes>
             </main>
         </Router>
@@ -71,6 +74,6 @@ fn HomePage() -> impl IntoView {
     view! {
         <h1>"Welcome to Leptos!"</h1>
         <button on:click=on_click>"Click Me: " {count}</button>
-        <LoginUser />
+        <HandleLogin/>
     }
 }

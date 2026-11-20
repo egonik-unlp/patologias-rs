@@ -3,11 +3,13 @@ use crate::{
     reports::dto::{FullStudyDto, NewFullStudyDto, ReportFieldsDto, StudyDto},
 };
 use leptos::prelude::*;
+use std::future::Future;
 
 #[server]
 pub async fn read_all() -> Result<Vec<FullStudyDto>, ServerFnError> {
     use crate::entrypoint::application_state::AppState;
 
+    crate::users::server::require_user().await?;
     let ctx = use_context::<AppState>().unwrap();
     ctx.reports_service
         .read_all_studies()
@@ -52,8 +54,7 @@ pub async fn get_suggestions_for_report(
 impl Suggestions for ReportFieldsDto {
     fn get_suggestions(
         &self,
-    ) -> impl std::prelude::rust_2024::Future<Output = Result<Vec<String>, ServerFnError>> + Send + 'static
-    {
+    ) -> impl Future<Output = Result<Vec<String>, ServerFnError>> + Send + 'static {
         get_suggestions_for_report(self.clone())
     }
 }
@@ -73,7 +74,7 @@ pub async fn create_study(study: NewFullStudyDto) -> Result<(), ServerFnError> {
         .map_err(ServerFnError::new)
         .map(FullStudyDto::from)
     {
-        Ok(study) => leptos_axum::redirect("/create_report"),
+        Ok(_) => leptos_axum::redirect("/create_report"),
         Err(error) => log!("Error => {}", error),
     }
     Ok(())
