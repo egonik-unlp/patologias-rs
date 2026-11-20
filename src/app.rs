@@ -1,6 +1,6 @@
 use crate::entities::component::Entities;
 use crate::reports::component::{CreateReport, Report, Reports};
-use crate::users::component::{CreateUser, CurrentUser, HandleLogin, LoginUser};
+use crate::users::component::{CreateUser, CurrentUser, HandleLogin, LoginUser, LogoutUser};
 
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
@@ -20,7 +20,7 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                 <HydrationScripts options />
                 <MetaTags />
             </head>
-            <body class="bg-slate-100 text-slate-800">
+            <body class="bg-slate-100 text-slate-800 h-dvh">
                 <App />
             </body>
         </html>
@@ -38,29 +38,35 @@ pub fn App() -> impl IntoView {
         <Stylesheet id="leptos" href="/pkg/patologias-rs.css" />
 
         // sets the document title
-        <Title text="Welcome to Leptos" />
-        <nav class="flex p-10 space-x-20">
-            <a href="/">"Home"</a>
-            <a href="/create_report">"New Report"</a>
-            <a href="/reports">"Reports"</a>
-            <a href="/entities">"Entities"</a>
-            <a href="/create_user">"Create User"</a>
-        </nav>
-        // content for this welcome page
-        <CurrentUser />
-        <Router>
-            <main>
-                <Routes fallback=|| "Page not found.".into_view()>
-                    <Route path=StaticSegment("") view=HandleLogin />
-                    <Route path=path!("/reports") view=Reports />
-                    <Route path=path!("/reports/:id") view=Report />
-                    <Route path=path!("/create_report") view=CreateReport />
-                    <Route path=path!("/entities") view=Entities />
-                    <Route path=path!("/create_user") view=CreateUser />
-                    <Route path=path!("/login") view=LoginUser />
-                </Routes>
-            </main>
-        </Router>
+        <Title text="Patologias" />
+        <div class="grid grid-cols-1  md:grid-cols-[20rem_1fr] gap-6 min-h-dvh">
+            <aside class="flex flex-col sticky top-0 py-10 gap-1 px-6 bg-white border-b md:border-l md:border-b-0 border-slate-200">
+                <a href="/">"Home"</a>
+                <a href="/create_report">"New Report"</a>
+                <a href="/reports">"Reports"</a>
+                <a href="/entities">"Entities"</a>
+                <a href="/create_user">"Create User"</a>
+                <div class="flex-1"></div>
+                <div class="grid grid-cols-[2fr_1fr] py-4 border-t ">
+                    <CurrentUser />
+                    <LogoutUser/>
+                </div>
+            </aside>
+            // content for this welcome page
+            <Router>
+                <main>
+                    <Routes fallback=|| "Page not found.".into_view()>
+                        <Route path=StaticSegment("") view=HandleLogin />
+                        <Route path=path!("/reports") view=Reports />
+                        <Route path=path!("/reports/:id") view=Report />
+                        <Route path=path!("/create_report") view=CreateReport />
+                        <Route path=path!("/entities") view=Entities />
+                        <Route path=path!("/create_user") view=CreateUser />
+                        <Route path=path!("/login") view=LoginUser />
+                    </Routes>
+                </main>
+            </Router>
+        </div>
     }
 }
 
@@ -74,6 +80,6 @@ fn HomePage() -> impl IntoView {
     view! {
         <h1>"Welcome to Leptos!"</h1>
         <button on:click=on_click>"Click Me: " {count}</button>
-        <HandleLogin />
+        <!-- <HandleLogin /> -->
     }
 }

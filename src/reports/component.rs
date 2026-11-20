@@ -31,9 +31,9 @@ macro_rules! query_map_to_field {
 macro_rules! html_and_suggestions {
     ($prefix:literal; $(($param:ident, $tp:expr)),* $(,)?) => {
         view! {
-            <div class="flex flex-col max-w-lg bg-center border-b-slate-700">
+            <div class="flex flex-col max-w-lg  ">
                 $(
-                <div class="flex-2 justify-between">
+                <div class="flex flex-col gap-1">
                     <label for=stringify!($param)>{stringify!($param)}
                     <SuggestInput
                         field=$tp
@@ -221,6 +221,7 @@ impl From<FullStudyDto> for ReportRowFields {
 #[component]
 fn ReportTable(reports: Vec<FullStudyDto>) -> impl IntoView {
     view! {
+        <div class="flex flex-col px-4 py-2 gap-4 mt-10 max-w-2xl mx-auto border border-slate-500 bg-white rounded-lg shadow">
         <table>
             <thead>
                 <tr>
@@ -257,6 +258,7 @@ fn ReportTable(reports: Vec<FullStudyDto>) -> impl IntoView {
 
             </tbody>
         </table>
+        </div>
     }
 }
 
@@ -268,18 +270,26 @@ pub fn CreateReport() -> impl IntoView {
         <ActionForm action=create>
             // Needed if SuggestInput reads a Resource; harmless if it doesn't.
             <Transition fallback=|| view! { <p>"Cargando…"</p> }>
-                <div class="max-w-md mx-auto ">
+                <div class="max-w-xl mx-auto grid grid-cols-2 gap-3">
                     <ReportHeader tipo=tipo />
 
                     // child fields: inputs inside these are named study[child][<Variant>][...]
+
+                    <div>
                     {move || match tipo.get() {
                         StudyTypeDto::Histopatologia => view! { <Histopatologia /> }.into_any(),
                         StudyTypeDto::Citologia => view! { <Citologias /> }.into_any(),
                     }}
+                            </div>
                 </div>
             </Transition>
 
-            <button type="submit">"Guardar"</button>
+            <button
+                class="max-w-40 bg-blue-500 hover:bg-blue-600 active:bg-blue-800 active:scale-95 transition text-white font-semibold py-2 px-4 rounded"
+                type="submit"
+            >
+                "Guardar"
+            </button>
         </ActionForm>
     }
 }
@@ -292,57 +302,73 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
     let doctors = OnceResource::new(get_all_doctors());
     let materials = OnceResource::new(get_all_materials());
     view! {
-            <Suspense fallback=|| {
-                view! { "hola" }
-            }>
-                {move || Suspend::new(async move {
-                    let doctors = doctors.await.unwrap();
-                    let materials = materials.await.unwrap();
-                    view! {
-                        <div class="flex flex-col max-w-lg ">
-                            <label for="protocolo">
-                                "Protocolo"
-                                <input type="text" id="protocolo" name="study[parent][protocolo]" />
-                            </label>
-                            <label for="fecha">
-                                "Fecha"
-                                <input type="datetime-local" id="fecha" name="study[parent][fecha]" />
-                            </label>
-                            <label for="paciente">
-                                "Paciente"
-                                <input type="text" id="paciente" name="study[parent][paciente]" />
-                            </label>
-                            // TODO: De acá se va SuggestInput y deberia venir directamente de la DB.
+        <Suspense fallback=|| {
+            view! { "hola" }
+        }>
+            {move || Suspend::new(async move {
+                let doctors = doctors.await.unwrap();
+                let materials = materials.await.unwrap();
+                view! {
+                    <div class="flex flex-col max-w-lg ">
+                        <label for="protocolo">
+                            "Protocolo"
+                            <input
+                                class="border-b-slate-700 border border-slate-400 px-3 py-2 rounded-md w-full"
+                                type="text"
+                                id="protocolo"
+                                name="study[parent][protocolo]"
+                            />
+                        </label>
+                        <label for="fecha">
+                            "Fecha"
+                            <input
+                                class="border-b-slate-700 border border-slate-400 px-3 py-2 rounded-md w-full"
+                                type="datetime-local"
+                                id="fecha"
+                                name="study[parent][fecha]"
+                            />
+                        </label>
+                        <label for="paciente">
+                            "Paciente"
+                            <input
+                                class="border-b-slate-700 border border-slate-400 px-3 py-2 rounded-md w-full"
+                                type="text"
+                                id="paciente"
+                                name="study[parent][paciente]"
+                            />
+                        </label>
+                        // TODO: De acá se va SuggestInput y deberia venir directamente de la DB.
 
-                            <label for="doctor">
-                                "Doctor"
-                                <select
-                                    id="doctor-id"
-                                    name="study[parent][doctor_id]"
-                                    on:change:target=move |ev| {
-                                        let v: i32 = ev
-                                            .target()
-                                            .value()
-                                            .parse()
-                                            .expect("Failed parsing doctor-id");
-                                        doctor_id.set(Some(v));
-                                    }
-                                >
-                                    {doctors
-                                        .into_iter()
-                                        .map(|doctor| {
-                                            view! {
-                                                <option value=doctor
-                                                    .clone()
-                                                    .id>{doctor.clone().name}</option>
-                                            }
-                                        })
-                                        .collect_view()}
-                                </select>
-                            </label>
-                            <label for="material">"Material"
-
+                        <label for="doctor">
+                            "Doctor"
                             <select
+                                id="doctor-id"
+                                name="study[parent][doctor_id]"
+                                on:change:target=move |ev| {
+                                    let v: i32 = ev
+                                        .target()
+                                        .value()
+                                        .parse()
+                                        .expect("Failed parsing doctor-id");
+                                    doctor_id.set(Some(v));
+                                }
+                            >
+                                {doctors
+                                    .into_iter()
+                                    .map(|doctor| {
+                                        view! {
+                                            <option value=doctor
+                                                .clone()
+                                                .id>{doctor.clone().name}</option>
+                                        }
+                                    })
+                                    .collect_view()}
+                            </select>
+                        </label>
+                        <label for="material">
+                            "Material"
+                            <select
+                                class="border-b-slate-700 border border-slate-400 px-3 py-2 rounded-md w-full"
                                 id="material-id"
                                 name="study[parent][material_id]"
                                 on:change:target=move |ev| {
@@ -361,9 +387,11 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
                                     })
                                     .collect_view()}
                             </select>
-    </label>
-                            <label for="tipo">"Tipo"
+                        </label>
+                        <label for="tipo">
+                            "Tipo"
                             <select
+                                class="border-b-slate-700 border border-slate-400 px-3 py-2 rounded-md w-full"
                                 id="tipo"
                                 name="study[parent][tipo]"
                                 on:change:target=move |ev| {
@@ -375,13 +403,13 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
                                 <option value="Citologia">"Citopatologia"</option>
                                 <option value="Histopatologia">"Histopatologia"</option>
                             </select>
-    </label>
-                        </div>
-                    }
-                })}
+                        </label>
+                    </div>
+                }
+            })}
 
-            </Suspense>
-        }
+        </Suspense>
+    }
 }
 
 // No <Form> in here: this renders inside CreateReport's <ActionForm>, and
@@ -392,7 +420,6 @@ pub fn Histopatologia() -> impl IntoView {
     query_map_to_field!(descripcion_macroscopica, diagnostico_histopatologico);
 
     view! {
-        <h2>"Histopatologia Specific fields"</h2>
         {html_and_suggestions!(
             "study[child][Histopatologia]";
             (descripcion_macroscopica, ReportFieldsDto::Histopatologia(HistoFields::DescripcionMacroscopica)),
@@ -416,7 +443,6 @@ pub fn Citologias() -> impl IntoView {
         diag_citologias
     );
     view! {
-        <h2>"Citologia Specific fields"</h2>
         {html_and_suggestions!(
             "study[child][Citologia]";
             (microflora, ReportFieldsDto::Citologia(CitoFields::Microflora)),

@@ -3,12 +3,13 @@ use leptos::prelude::*;
 #[component]
 fn Doctors() -> impl IntoView {
     view! {
-        <div>
+        <div class="flex flex-col px-4 py-2 gap-4 mt-10 max-w-96 mx-auto border border-slate-500 bg-white rounded-lg shadow min-w-md">
             <Await future=get_all_doctors() let:data>
                 {data
                     .clone()
                     .unwrap()
                     .iter()
+                    .take(20)
                     .map(|doctor| view! { <p>{doctor.name.clone()}</p> })
                     .collect_view()}
             </Await>
@@ -19,12 +20,14 @@ fn Doctors() -> impl IntoView {
 #[component]
 fn Materials() -> impl IntoView {
     view! {
-        <div>
+        <div
+        class="flex flex-col px-4 py-2 gap-4 mt-10 max-w-96 mx-auto border border-slate-500 bg-white rounded-lg shadow min-w-md" >
             <Await future=get_all_materials() let:data>
                 {data
                     .clone()
                     .unwrap()
                     .iter()
+                    .take(20)
                     .map(|material| view! { <p>{material.name.clone()}</p> })
                     .collect_view()}
             </Await>
@@ -35,7 +38,7 @@ fn Materials() -> impl IntoView {
 #[component]
 pub fn Entities() -> impl IntoView {
     view! {
-        <div class="flex">
+        <div class="flex ">
             <Doctors />
             <Materials />
         </div>

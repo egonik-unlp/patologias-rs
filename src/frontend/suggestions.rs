@@ -23,7 +23,7 @@ pub fn SuggestInput(
 
     view! {
         <input
-            class="border-2 border-b-slate-700"
+            class="border-b-slate-700 border border-slate-400 px-3 py-2 rounded-md w-full"
             type="text"
             id=id.clone()
             name=name
