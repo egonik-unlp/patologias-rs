@@ -20,7 +20,7 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                 <HydrationScripts options />
                 <MetaTags />
             </head>
-            <body>
+            <body class="bg-slate-100 text-slate-800">
                 <App />
             </body>
         </html>
@@ -47,11 +47,11 @@ pub fn App() -> impl IntoView {
             <a href="/create_user">"Create User"</a>
         </nav>
         // content for this welcome page
-                <CurrentUser/>
+        <CurrentUser />
         <Router>
             <main>
                 <Routes fallback=|| "Page not found.".into_view()>
-                    <Route path=StaticSegment("") view=HomePage />
+                    <Route path=StaticSegment("") view=HandleLogin />
                     <Route path=path!("/reports") view=Reports />
                     <Route path=path!("/reports/:id") view=Report />
                     <Route path=path!("/create_report") view=CreateReport />
@@ -74,6 +74,6 @@ fn HomePage() -> impl IntoView {
     view! {
         <h1>"Welcome to Leptos!"</h1>
         <button on:click=on_click>"Click Me: " {count}</button>
-        <HandleLogin/>
+        <HandleLogin />
     }
 }

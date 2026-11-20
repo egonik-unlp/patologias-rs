@@ -4,10 +4,3 @@
    (exp.rs, dump-rs, file_dump.txt) aren't scanned; only the sources below are. */
 @import "tailwindcss" source(none);
 @source "../src/**/*.rs";
-
-@layer base {
-  body {
-    font-family: sans-serif;
-    text-align: center;
-  }
-}
