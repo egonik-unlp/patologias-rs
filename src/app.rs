@@ -1,4 +1,7 @@
 use crate::entities::component::Entities;
+use crate::frontend::icons::{
+    BrandMark, IconFilePlus, IconFiles, IconHouse, IconSpecimenJar, IconUserPlus,
+};
 use crate::reports::component::{CreateReport, Report, Reports};
 use crate::users::component::{CreateUser, CurrentUser, HandleLogin, LoginUser, LogoutUser};
 
@@ -16,6 +19,11 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
             <head>
                 <meta charset="utf-8" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <link rel="icon" href="/favicon.ico" sizes="32x32" />
+                <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+                <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+                <link rel="manifest" href="/site.webmanifest" />
+                <meta name="theme-color" content="#4B2E83" />
                 <AutoReload options=options.clone() />
                 <HydrationScripts options />
                 <MetaTags />
@@ -41,11 +49,30 @@ pub fn App() -> impl IntoView {
         <Title text="Patologias" />
         <div class="grid grid-cols-1  md:grid-cols-[20rem_1fr] gap-6 min-h-dvh">
             <aside class="flex flex-col sticky top-0 py-10 gap-1 px-6 bg-white border-b md:border-l md:border-b-0 border-slate-200">
-                <a href="/">"Home"</a>
-                <a href="/create_report">"New Report"</a>
-                <a href="/reports">"Reports"</a>
-                <a href="/entities">"Entities"</a>
-                <a href="/create_user">"Create User"</a>
+                <div class="flex items-center gap-2 mb-6 text-lg font-semibold">
+                    <BrandMark class="size-8" />
+                    "Patologías"
+                </div>
+                <a href="/" class="flex items-center gap-2">
+                    <IconHouse class="size-5" />
+                    "Home"
+                </a>
+                <a href="/create_report" class="flex items-center gap-2">
+                    <IconFilePlus class="size-5" />
+                    "New Report"
+                </a>
+                <a href="/reports" class="flex items-center gap-2">
+                    <IconFiles class="size-5" />
+                    "Reports"
+                </a>
+                <a href="/entities" class="flex items-center gap-2">
+                    <IconSpecimenJar class="size-5" />
+                    "Entities"
+                </a>
+                <a href="/create_user" class="flex items-center gap-2">
+                    <IconUserPlus class="size-5" />
+                    "Create User"
+                </a>
                 <div class="flex-1"></div>
                 <div class="grid grid-cols-[2fr_1fr] py-4 border-t ">
                     <CurrentUser />
@@ -54,7 +81,7 @@ pub fn App() -> impl IntoView {
             </aside>
             // content for this welcome page
             <Router>
-                <main>
+                <main class="mt-10">
                     <Routes fallback=|| "Page not found.".into_view()>
                         <Route path=StaticSegment("") view=HandleLogin />
                         <Route path=path!("/reports") view=Reports />

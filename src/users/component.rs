@@ -1,3 +1,4 @@
+use crate::frontend::icons::IconLogOut;
 use crate::users::{
     dto::UserDto,
     server::{get_current_user, CreateUser, LoginUser, LogoutUser},
@@ -52,7 +53,7 @@ pub fn CreateUser() -> impl IntoView {
                 </label>
                 <input type="hidden" name="user[active]" value="true" />
                 <button
-                    class="max-w-40 bg-blue-500 hover:bg-blue-600 active:bg-blue-800 active:scale-95 transition text-white font-semibold py-2 px-4 rounded"
+                    class="max-w-40 bg-hema-700 hover:bg-hema-800 active:bg-hema-900 active:scale-95 transition text-white font-semibold py-2 px-4 rounded"
                     type="submit"
                 >
                     "Crear usuario"
@@ -114,7 +115,7 @@ pub fn LoginUser() -> impl IntoView {
                     />
                 </label>
                 <button
-                    class="max-w-40 bg-blue-500 hover:bg-blue-600 active:bg-blue-800 active:scale-95 transition text-white font-semibold py-2 px-4 rounded"
+                    class="max-w-40 bg-hema-700 hover:bg-hema-800 active:bg-hema-900 active:scale-95 transition text-white font-semibold py-2 px-4 rounded"
                     type="submit"
                 >
                     "login"
@@ -157,9 +158,10 @@ pub fn LogoutUser() -> impl IntoView {
         <div>
         <ActionForm action=logout>
             <button
-                class="px-2 py-1 rounded font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                class="inline-flex items-center gap-1.5 px-2 py-1 rounded font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
                 type="submit"
             >
+                <IconLogOut class="size-4" />
                 "Logout"
             </button>
         </ActionForm>

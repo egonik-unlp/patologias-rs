@@ -4,3 +4,20 @@
    (exp.rs, dump-rs, file_dump.txt) aren't scanned; only the sources below are. */
 @import "tailwindcss" source(none);
 @source "../src/**/*.rs";
+
+/* Brand palette (H&E). hema = hematoxylin violet, the single UI accent; 900 is the mark's disc.
+   eosin is reserved for the brand mark: don't use it in the UI. See branding/README.md. */
+@theme {
+  --color-hema-50: oklch(0.975 0.013 294.9);
+  --color-hema-100: oklch(0.945 0.028 294.9);
+  --color-hema-200: oklch(0.895 0.055 294.9);
+  --color-hema-300: oklch(0.815 0.09 294.9);
+  --color-hema-400: oklch(0.71 0.135 294.9);
+  --color-hema-500: oklch(0.61 0.165 294.9);
+  --color-hema-600: oklch(0.53 0.17 294.9);
+  --color-hema-700: oklch(0.465 0.16 294.9);
+  --color-hema-800: oklch(0.41 0.145 294.9);
+  --color-hema-900: #4b2e83;
+  --color-hema-950: oklch(0.27 0.1 294.9);
+  --color-eosin: #f4bccb;
+}

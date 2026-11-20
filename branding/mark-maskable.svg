@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Maskable variant: full-bleed background, cell kept inside the 80% safe zone. -->
+  <rect width="32" height="32" fill="#4B2E83"/>
+  <g transform="translate(16 16) scale(1) translate(-16.5 -16)">
+    <path d="M9 12.2 L15 7.6 L22 9 L25 15.4 L21.6 22.8 L13.6 24.4 L8 19.2 Z" fill="#F4BCCB" stroke="#F4BCCB" stroke-width="2.4" stroke-linejoin="round"/>
+    <circle cx="16.6" cy="16" r="3.1" fill="#4B2E83"/>
+  </g>
+</svg>

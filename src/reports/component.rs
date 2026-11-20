@@ -1,6 +1,9 @@
 use crate::{
     entities::server::{get_all_doctors, get_all_materials},
-    frontend::suggestions::SuggestInput,
+    frontend::{
+        icons::{IconCitologia, IconHistopatologia},
+        suggestions::SuggestInput,
+    },
     reports::{
         dto::{
             CitoFields, CitologiaDto, FullStudyDto, HistoFields, HistopatologiaDto,
@@ -65,7 +68,7 @@ pub fn Report() -> impl IntoView {
 fn ReportView(report: FullStudyDto) -> impl IntoView {
     let FullStudyDto { parent, child } = report;
     view! {
-        <div>
+        <div class="flex flex-col px-4 py-2 gap-4 mt-10 max-w-2xl mx-auto border border-slate-500 bg-white rounded-lg shadow">
             <ShowParent parent />
             <ShowChild child />
         </div>
@@ -161,7 +164,18 @@ fn ShowParent(parent: StudyDto) -> impl IntoView {
         <div>"Parciente": {paciente}</div>
         <div>"Doctor Id": {doctor_id}</div>
         <div>"Material id": {material_id}</div>
-        <div>"Tipo": {format!("{:?}", tipo)}</div>
+        <div class="flex items-center gap-1.5">
+            "Tipo: " <StudyTypeIcon tipo=tipo.clone() class="size-4" /> {format!("{:?}", tipo)}
+        </div>
+    }
+}
+
+/// Icon that tells the two study types apart at a glance (cell vs. slide).
+#[component]
+fn StudyTypeIcon(tipo: StudyTypeDto, #[prop(into, optional)] class: String) -> impl IntoView {
+    match tipo {
+        StudyTypeDto::Citologia => view! { <IconCitologia class /> }.into_any(),
+        StudyTypeDto::Histopatologia => view! { <IconHistopatologia class /> }.into_any(),
     }
 }
 
@@ -250,7 +264,12 @@ fn ReportTable(reports: Vec<FullStudyDto>) -> impl IntoView {
                                 </td>
                                 <td>{format!("{:?}", table_node.fecha)}</td>
                                 <td>{table_node.paciente}</td>
-                                <td>{format!("{:?}", table_node.tipo)}</td>
+                                <td>
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <StudyTypeIcon tipo=table_node.tipo.clone() class="size-4" />
+                                        {format!("{:?}", table_node.tipo)}
+                                    </span>
+                                </td>
                             </tr>
                         }
                     })
@@ -266,7 +285,10 @@ fn ReportTable(reports: Vec<FullStudyDto>) -> impl IntoView {
 pub fn CreateReport() -> impl IntoView {
     let create = ServerAction::<CreateStudy>::new();
     let tipo = RwSignal::new(StudyTypeDto::Citologia);
+    #[allow(unused_variables)]
+    let value: MappedSignal<Option<Result<(), ServerFnError>>> = create.value();
     view! {
+        <div class="flex flex-col min-h-dvh">
         <ActionForm action=create>
             // Needed if SuggestInput reads a Resource; harmless if it doesn't.
             <Transition fallback=|| view! { <p>"Cargando…"</p> }>
@@ -283,14 +305,16 @@ pub fn CreateReport() -> impl IntoView {
                             </div>
                 </div>
             </Transition>
-
+            <div class="flex-1">
+            </div>
             <button
-                class="max-w-40 bg-blue-500 hover:bg-blue-600 active:bg-blue-800 active:scale-95 transition text-white font-semibold py-2 px-4 rounded"
+                class="max-w-40 bg-hema-700 hover:bg-hema-800 active:bg-hema-900 active:scale-95 transition text-white font-semibold py-2 px-4 rounded "
                 type="submit"
             >
                 "Guardar"
             </button>
         </ActionForm>
+        </div>
     }
 }
 
@@ -390,6 +414,7 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
                         </label>
                         <label for="tipo">
                             "Tipo"
+                            <div class="flex items-center gap-2">
                             <select
                                 class="border-b-slate-700 border border-slate-400 px-3 py-2 rounded-md w-full"
                                 id="tipo"
@@ -403,6 +428,8 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
                                 <option value="Citologia">"Citopatologia"</option>
                                 <option value="Histopatologia">"Histopatologia"</option>
                             </select>
+                            {move || view! { <StudyTypeIcon tipo=tipo.get() class="size-5 shrink-0" /> }}
+                            </div>
                         </label>
                     </div>
                 }
