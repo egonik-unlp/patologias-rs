@@ -36,7 +36,6 @@ macro_rules! html_and_suggestions {
         view! {
             <div class="flex flex-col max-w-lg  ">
                 $(
-                <div class="flex flex-col gap-1">
                     <label for=stringify!($param)>{stringify!($param)}
                     <SuggestInput
                         field=$tp
@@ -44,8 +43,7 @@ macro_rules! html_and_suggestions {
                         name=concat!($prefix, "[", stringify!($param), "]")
                         value=$param
                     />
-            </label>
-                </div>
+                    </label>
                 )*
             </div>
         }
@@ -236,59 +234,61 @@ impl From<FullStudyDto> for ReportRowFields {
 fn ReportTable(reports: Vec<FullStudyDto>) -> impl IntoView {
     view! {
         <div class="flex flex-col px-4 py-2 gap-4 mt-10 max-w-2xl mx-auto border border-slate-500 bg-white rounded-lg shadow">
-        <table>
-            <thead>
-                <tr>
-                    <th>Protocolo</th>
-                    <th>Fecha</th>
-                    <th>Paciente</th>
-                    <th>Tipo</th>
-                </tr>
-            </thead>
-            <tbody>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Protocolo</th>
+                        <th>Fecha</th>
+                        <th>Paciente</th>
+                        <th>Tipo</th>
+                    </tr>
+                </thead>
+                <tbody>
 
-                {reports
-                    .into_iter()
-                    .rev()
-                    .take(20)
-                    .map(|node| {
-                        let local_node = node.clone();
-                        let table_node: ReportRowFields = node.into();
-                        view! {
-                            <tr>
-                                <td>
-                                    <a href=format!(
-                                        "/reports/{}",
-                                        local_node.parent.id,
-                                    )>{table_node.protocolo}</a>
-                                </td>
-                                <td>{format!("{:?}", table_node.fecha)}</td>
-                                <td>{table_node.paciente}</td>
-                                <td>
-                                    <span class="inline-flex items-center gap-1.5">
-                                        <StudyTypeIcon tipo=table_node.tipo.clone() class="size-4" />
-                                        {format!("{:?}", table_node.tipo)}
-                                    </span>
-                                </td>
-                            </tr>
-                        }
-                    })
-                    .collect_view()}
+                    {reports
+                        .into_iter()
+                        .rev()
+                        .take(20)
+                        .map(|node| {
+                            let local_node = node.clone();
+                            let table_node: ReportRowFields = node.into();
+                            view! {
+                                <tr>
+                                    <td>
+                                        <a href=format!(
+                                            "/reports/{}",
+                                            local_node.parent.id,
+                                        )>{table_node.protocolo}</a>
+                                    </td>
+                                    <td>{format!("{:?}", table_node.fecha)}</td>
+                                    <td>{table_node.paciente}</td>
+                                    <td>
+                                        <span class="inline-flex items-center gap-1.5">
+                                            <StudyTypeIcon
+                                                tipo=table_node.tipo.clone()
+                                                class="size-4"
+                                            />
+                                            {format!("{:?}", table_node.tipo)}
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        })
+                        .collect_view()}
 
-            </tbody>
-        </table>
+                </tbody>
+            </table>
         </div>
     }
 }
 
 #[component]
 pub fn CreateReport() -> impl IntoView {
-    let create = ServerAction::<CreateStudy>::new();
+    let create: ServerAction<CreateStudy> = ServerAction::<CreateStudy>::new();
     let tipo = RwSignal::new(StudyTypeDto::Citologia);
     #[allow(unused_variables)]
     let value: MappedSignal<Option<Result<(), ServerFnError>>> = create.value();
     view! {
-        <div class="flex flex-col min-h-dvh">
         <ActionForm action=create>
             // Needed if SuggestInput reads a Resource; harmless if it doesn't.
             <Transition fallback=|| view! { <p>"Cargando…"</p> }>
@@ -298,15 +298,13 @@ pub fn CreateReport() -> impl IntoView {
                     // child fields: inputs inside these are named study[child][<Variant>][...]
 
                     <div>
-                    {move || match tipo.get() {
-                        StudyTypeDto::Histopatologia => view! { <Histopatologia /> }.into_any(),
-                        StudyTypeDto::Citologia => view! { <Citologias /> }.into_any(),
-                    }}
-                            </div>
+                        {move || match tipo.get() {
+                            StudyTypeDto::Histopatologia => view! { <Histopatologia /> }.into_any(),
+                            StudyTypeDto::Citologia => view! { <Citologias /> }.into_any(),
+                        }}
+                    </div>
                 </div>
             </Transition>
-            <div class="flex-1">
-            </div>
             <button
                 class="max-w-40 bg-hema-700 hover:bg-hema-800 active:bg-hema-900 active:scale-95 transition text-white font-semibold py-2 px-4 rounded "
                 type="submit"
@@ -314,7 +312,6 @@ pub fn CreateReport() -> impl IntoView {
                 "Guardar"
             </button>
         </ActionForm>
-        </div>
     }
 }
 
@@ -337,7 +334,7 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
                         <label for="protocolo">
                             "Protocolo"
                             <input
-                                class="border-b-slate-700 border border-slate-400 px-3 py-2 rounded-md w-full"
+                                class=" border border-slate-400 px-3 py-2 rounded-md w-full"
                                 type="text"
                                 id="protocolo"
                                 name="study[parent][protocolo]"
@@ -346,7 +343,7 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
                         <label for="fecha">
                             "Fecha"
                             <input
-                                class="border-b-slate-700 border border-slate-400 px-3 py-2 rounded-md w-full"
+                                class=" border border-slate-400 px-3 py-2 rounded-md w-full"
                                 type="datetime-local"
                                 id="fecha"
                                 name="study[parent][fecha]"
@@ -355,18 +352,18 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
                         <label for="paciente">
                             "Paciente"
                             <input
-                                class="border-b-slate-700 border border-slate-400 px-3 py-2 rounded-md w-full"
+                                class="border border-slate-400 px-3 py-2 rounded-md w-full"
                                 type="text"
                                 id="paciente"
                                 name="study[parent][paciente]"
                             />
                         </label>
-                        // TODO: De acá se va SuggestInput y deberia venir directamente de la DB.
 
                         <label for="doctor">
                             "Doctor"
                             <select
                                 id="doctor-id"
+                                class="border border-slate-400 px-3 py-2 rounded-md w-full"
                                 name="study[parent][doctor_id]"
                                 on:change:target=move |ev| {
                                     let v: i32 = ev
@@ -392,7 +389,7 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
                         <label for="material">
                             "Material"
                             <select
-                                class="border-b-slate-700 border border-slate-400 px-3 py-2 rounded-md w-full"
+                                class="border border-slate-400 px-3 py-2 rounded-md w-full"
                                 id="material-id"
                                 name="study[parent][material_id]"
                                 on:change:target=move |ev| {
@@ -413,22 +410,27 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
                             </select>
                         </label>
                         <label for="tipo">
-                            "Tipo"
-                            <div class="flex items-center gap-2">
-                            <select
-                                class="border-b-slate-700 border border-slate-400 px-3 py-2 rounded-md w-full"
-                                id="tipo"
-                                name="study[parent][tipo]"
-                                on:change:target=move |ev| {
-                                    if let Ok(t) = StudyTypeDto::from_str(&ev.target().value()) {
-                                        tipo.set(t);
+                            "Tipo" <div class="flex items-center gap-2">
+                                <select
+                                    class="border-b-slate-700 border border-slate-400 px-3 py-2 rounded-md w-full"
+                                    id="tipo"
+                                    name="study[parent][tipo]"
+                                    on:change:target=move |ev| {
+                                        if let Ok(t) = StudyTypeDto::from_str(
+                                            &ev.target().value(),
+                                        ) {
+                                            tipo.set(t);
+                                        }
                                     }
-                                }
-                            >
-                                <option value="Citologia">"Citopatologia"</option>
-                                <option value="Histopatologia">"Histopatologia"</option>
-                            </select>
-                            {move || view! { <StudyTypeIcon tipo=tipo.get() class="size-5 shrink-0" /> }}
+                                >
+                                    <option value="Citologia">"Citopatologia"</option>
+                                    <option value="Histopatologia">"Histopatologia"</option>
+                                </select>
+                                {move || {
+                                    view! {
+                                        <StudyTypeIcon tipo=tipo.get() class="size-5 shrink-0" />
+                                    }
+                                }}
                             </div>
                         </label>
                     </div>

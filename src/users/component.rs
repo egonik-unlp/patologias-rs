@@ -63,9 +63,9 @@ pub fn CreateUser() -> impl IntoView {
                     Some(Ok(user)) => {
                         view! {
                             <div class="max-w-80 mx-auto bg-green-400">
-                                <h1 class="text-2xl bg-green-200 max-w-40 rounded-xl shadow">
+                                <p class="text-2xl bg-green-200 max-w-40 rounded-xl shadow">
                                     "Login"
-                                </h1>
+                                </p>
                                 <p>{format!("Usuario {} creado", user.username)}</p>
                             </div>
                         }
@@ -94,7 +94,7 @@ pub fn LoginUser() -> impl IntoView {
     let value = action.value();
     view! {
         <ActionForm action>
-            <div class="flex flex-col gap-4 max-w-96 mx-auto p-6 shadow-md border border-slate-400 mt-10 rounded-lg bg-white">
+            <div class="flex flex-col gap-4 max-w-96 mx-auto px-4 py-2 shadow border border-slate-500 mt-10 rounded-lg bg-white">
                 <h1 class="text-2xl font-semibold">"Iniciar sesión"</h1>
                 <label class="flex flex-col gap-1">
                     <span class="text-sm font-semibold text-slate-700">"Username"</span>
@@ -152,26 +152,26 @@ pub fn HandleLogin() -> impl IntoView {
 
 #[component]
 pub fn LogoutUser() -> impl IntoView {
-    let logout = ServerAction::<LogoutUser>::new();
-    let value = logout.value();
+    let logout: ServerAction<LogoutUser> = ServerAction::<LogoutUser>::new();
+    let value: MappedSignal<Option<Result<(), _>>> = logout.value();
     view! {
         <div>
-        <ActionForm action=logout>
-            <button
-                class="inline-flex items-center gap-1.5 px-2 py-1 rounded font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
-                type="submit"
-            >
-                <IconLogOut class="size-4" />
-                "Logout"
-            </button>
-        </ActionForm>
-        <p>
-            {move || match value.get() {
-                None => String::new(),
-                Some(Ok(val)) => format!("{:?}", val),
-                Some(Err(error)) => format!("Error {:?}", error),
-            }}
-        </p>
+            <ActionForm action=logout>
+                <button
+                    class="inline-flex items-center gap-1.5 px-2 py-1 rounded font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                    type="submit"
+                >
+                    <IconLogOut class="size-4" />
+                    "Logout"
+                </button>
+            </ActionForm>
+            <p>
+                {move || match value.get() {
+                    None => String::new(),
+                    Some(Ok(val)) => format!("{:?}", val),
+                    Some(Err(error)) => format!("Error {:?}", error),
+                }}
+            </p>
         </div>
     }
 }
@@ -185,7 +185,15 @@ pub fn CurrentUser() -> impl IntoView {
         }>
             {move || Suspend::new(async move {
                 match resource.await {
-                    Ok(Some(user)) => view! { <div class="flex flex-col"><p class="font-semibold text-sm ">{user.username}</p> <p class="text-xs">{user.full_name}</p></div> }.into_any(),
+                    Ok(Some(user)) => {
+                        view! {
+                            <div class="flex flex-col">
+                                <p class="font-semibold text-sm ">{user.username}</p>
+                                <p class="text-xs">{user.full_name}</p>
+                            </div>
+                        }
+                            .into_any()
+                    }
                     Ok(None) => view! { <p>"Not logged in"</p> }.into_any(),
                     Err(e) => view! { <p>{format!("Error: {e}")}</p> }.into_any(),
                 }

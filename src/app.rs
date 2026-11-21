@@ -28,7 +28,7 @@ pub fn shell(options: LeptosOptions) -> impl IntoView {
                 <HydrationScripts options />
                 <MetaTags />
             </head>
-            <body class="bg-slate-100 text-slate-800 h-dvh">
+            <body class="bg-slate-100 text-slate-800">
                 <App />
             </body>
         </html>
@@ -48,7 +48,7 @@ pub fn App() -> impl IntoView {
         // sets the document title
         <Title text="Patologias" />
         <div class="grid grid-cols-1  md:grid-cols-[20rem_1fr] gap-6 min-h-dvh">
-            <aside class="flex flex-col sticky top-0 py-10 gap-1 px-6 bg-white border-b md:border-l md:border-b-0 border-slate-200">
+            <aside class="flex flex-col md:sticky md:top-0 md:h-dvh py-10 gap-1 px-6 bg-white border-b md:border-r md:border-b-0 border-slate-200">
                 <div class="flex items-center gap-2 mb-6 text-lg font-semibold">
                     <BrandMark class="size-8" />
                     "Patologías"
@@ -74,9 +74,9 @@ pub fn App() -> impl IntoView {
                     "Create User"
                 </a>
                 <div class="flex-1"></div>
-                <div class="grid grid-cols-[2fr_1fr] py-4 border-t ">
+                <div class="flex items-center justify-between py-4 border-t border-slate-200">
                     <CurrentUser />
-                    <LogoutUser/>
+                    <LogoutUser />
                 </div>
             </aside>
             // content for this welcome page
@@ -107,6 +107,5 @@ fn HomePage() -> impl IntoView {
     view! {
         <h1>"Welcome to Leptos!"</h1>
         <button on:click=on_click>"Click Me: " {count}</button>
-        <!-- <HandleLogin /> -->
     }
 }
