@@ -3,7 +3,7 @@ use crate::frontend::icons::{
     BrandMark, IconFilePlus, IconFiles, IconHouse, IconSpecimenJar, IconUserPlus,
 };
 use crate::reports::component::{CreateReport, Report, Reports};
-use crate::users::component::{CreateUser, CurrentUser, HandleLogin, LoginUser, LogoutUser};
+use crate::users::component::{CreateUser, CurrentUser, HandleLogin, LoginUser};
 
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
@@ -47,7 +47,7 @@ pub fn App() -> impl IntoView {
 
         // sets the document title
         <Title text="Patologias" />
-        <div class="grid grid-cols-1  md:grid-cols-[20rem_1fr] gap-6 min-h-dvh">
+        <div class="grid grid-cols-1 md:grid-cols-[20rem_1fr] gap-6 min-h-dvh">
             <aside class="flex flex-col md:sticky md:top-0 md:h-dvh py-10 gap-1 px-6 bg-white border-b md:border-r md:border-b-0 border-slate-200">
                 <div class="flex items-center gap-2 mb-6 text-lg font-semibold">
                     <BrandMark class="size-8" />
@@ -74,9 +74,8 @@ pub fn App() -> impl IntoView {
                     "Create User"
                 </a>
                 <div class="flex-1"></div>
-                <div class="flex items-center justify-between py-4 border-t border-slate-200">
+                <div class="py-4 border-t border-slate-200">
                     <CurrentUser />
-                    <LogoutUser />
                 </div>
             </aside>
             // content for this welcome page

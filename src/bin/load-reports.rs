@@ -7,14 +7,24 @@
 use std::collections::HashMap;
 
 use diesel::prelude::*;
-use patologias_rs::core::config::model::Config;
-use patologias_rs::core::database::connection::{get_connection_pool, interact, DbPool};
-use patologias_rs::core::database::repository::{AsyncLayer, AsyncLayerWithHierarchy};
-use patologias_rs::core::database::schema::{doctors, materials, studies};
-use patologias_rs::entities::model::{NewDoctor, NewMaterial};
-use patologias_rs::entities::repository::{DoctorRepository, MaterialRepository};
-use patologias_rs::reports::model::{NewCitologia, NewHistopatologia, NewStudy, StudyType};
-use patologias_rs::reports::repository::{NewStudyDetail, StudyRepository};
+use patologias_rs::{
+    core::{
+        config::model::Config,
+        database::{
+            connection::{get_connection_pool, interact, DbPool},
+            repository::{AsyncLayer, AsyncLayerWithHierarchy},
+            schema::{doctors, materials, studies},
+        },
+    },
+    entities::{
+        model::{NewDoctor, NewMaterial},
+        repository::{DoctorRepository, MaterialRepository},
+    },
+    reports::{
+        model::{NewCitologia, NewHistopatologia, NewStudy, StudyType},
+        repository::{NewStudyDetail, StudyRepository},
+    },
+};
 use serde::Deserialize;
 
 const CSV_PATH: &str = "./data/studies-test.csv";
@@ -41,7 +51,8 @@ fn main() -> anyhow::Result<()> {
 
 async fn load(pool: DbPool) -> anyhow::Result<()> {
     // protocolo isn't unique, so a second run would duplicate every study.
-    let existing: i64 = interact(&pool, |conn| Ok(studies::table.count().get_result(conn)?)).await?;
+    let existing: i64 =
+        interact(&pool, |conn| Ok(studies::table.count().get_result(conn)?)).await?;
     anyhow::ensure!(
         existing == 0,
         "studies table already has {existing} rows; refusing to load again"
@@ -53,11 +64,19 @@ async fn load(pool: DbPool) -> anyhow::Result<()> {
 
     // name -> id, so each distinct name is created only once.
     let mut doctor_ids: HashMap<String, i32> = interact(&pool, |conn| {
-        Ok(doctors::table.select((doctors::name, doctors::id)).load(conn)?.into_iter().collect())
+        Ok(doctors::table
+            .select((doctors::name, doctors::id))
+            .load(conn)?
+            .into_iter()
+            .collect())
     })
     .await?;
     let mut material_ids: HashMap<String, i32> = interact(&pool, |conn| {
-        Ok(materials::table.select((materials::name, materials::id)).load(conn)?.into_iter().collect())
+        Ok(materials::table
+            .select((materials::name, materials::id))
+            .load(conn)?
+            .into_iter()
+            .collect())
     })
     .await?;
 
@@ -81,7 +100,12 @@ async fn load(pool: DbPool) -> anyhow::Result<()> {
                 citologia: rec.deserialize(Some(&headers))?,
             })
         });
-        let CsvReport { names, mut study, histopatologia, citologia } = match report {
+        let CsvReport {
+            names,
+            mut study,
+            histopatologia,
+            citologia,
+        } = match report {
             Ok(report) => report,
             Err(e) => {
                 eprintln!("skipping record: {e}");
@@ -93,14 +117,18 @@ async fn load(pool: DbPool) -> anyhow::Result<()> {
         study.doctor_id = match doctor_ids.get(&names.medico) {
             Some(id) => *id,
             None => {
-                let doctor = doctors_repo.create(NewDoctor::new(names.medico.clone())).await?;
+                let doctor = doctors_repo
+                    .create(NewDoctor::new(names.medico.clone()))
+                    .await?;
                 *doctor_ids.entry(names.medico).or_insert(*doctor.id())
             }
         };
         study.material_id = match material_ids.get(&names.material) {
             Some(id) => *id,
             None => {
-                let material = materials_repo.create(NewMaterial::new(names.material.clone())).await?;
+                let material = materials_repo
+                    .create(NewMaterial::new(names.material.clone()))
+                    .await?;
                 *material_ids.entry(names.material).or_insert(*material.id())
             }
         };

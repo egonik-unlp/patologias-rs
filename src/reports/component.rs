@@ -28,28 +28,6 @@ macro_rules! query_map_to_field {
     };
 }
 
-// `$prefix` is the form-name path of the struct these fields belong to, e.g.
-// "study[child][Citologia]" -> inputs named "study[child][Citologia][microflora]", ...
-#[macro_export]
-macro_rules! html_and_suggestions {
-    ($prefix:literal; $(($param:ident, $tp:expr)),* $(,)?) => {
-        view! {
-            <div class="flex flex-col max-w-lg  ">
-                $(
-                    <label for=stringify!($param)>{stringify!($param)}
-                    <SuggestInput
-                        field=$tp
-                        id=stringify!($param)
-                        name=concat!($prefix, "[", stringify!($param), "]")
-                        value=$param
-                    />
-                    </label>
-                )*
-            </div>
-        }
-    };
-}
-
 #[component]
 pub fn Report() -> impl IntoView {
     let params = use_params_map();
@@ -66,7 +44,7 @@ pub fn Report() -> impl IntoView {
 fn ReportView(report: FullStudyDto) -> impl IntoView {
     let FullStudyDto { parent, child } = report;
     view! {
-        <div class="flex flex-col px-4 py-2 gap-4 mt-10 max-w-2xl mx-auto border border-slate-500 bg-white rounded-lg shadow">
+        <div class="flex flex-col px-4 py-2 gap-4  max-w-2xl mx-auto border border-slate-500 bg-white rounded-lg shadow">
             <ShowParent parent />
             <ShowChild child />
         </div>
@@ -233,7 +211,7 @@ impl From<FullStudyDto> for ReportRowFields {
 #[component]
 fn ReportTable(reports: Vec<FullStudyDto>) -> impl IntoView {
     view! {
-        <div class="flex flex-col px-4 py-2 gap-4 mt-10 max-w-2xl mx-auto border border-slate-500 bg-white rounded-lg shadow">
+        <div class="flex flex-col px-4 py-2 gap-4 max-w-2xl mx-auto border border-slate-500 bg-white rounded-lg shadow">
             <table>
                 <thead>
                     <tr>
@@ -290,27 +268,28 @@ pub fn CreateReport() -> impl IntoView {
     let value: MappedSignal<Option<Result<(), ServerFnError>>> = create.value();
     view! {
         <ActionForm action=create>
-            // Needed if SuggestInput reads a Resource; harmless if it doesn't.
-            <Transition fallback=|| view! { <p>"Cargando…"</p> }>
-                <div class="max-w-xl mx-auto grid grid-cols-2 gap-3">
-                    <ReportHeader tipo=tipo />
+            <div class="max-w-4xl mx-auto flex flex-col gap-6">
+                // Needed if SuggestInput reads a Resource; harmless if it doesn't.
+                <Transition fallback=|| view! { <p>"Cargando…"</p> }>
+                    // Header fields on the left, type-specific fields on the right
+                    // (one column on phones). Each side is a single grid child.
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <ReportHeader tipo=tipo />
 
-                    // child fields: inputs inside these are named study[child][<Variant>][...]
-
-                    <div>
+                        // child fields: inputs inside these are named study[child][<Variant>][...]
                         {move || match tipo.get() {
                             StudyTypeDto::Histopatologia => view! { <Histopatologia /> }.into_any(),
                             StudyTypeDto::Citologia => view! { <Citologias /> }.into_any(),
                         }}
                     </div>
-                </div>
-            </Transition>
-            <button
-                class="max-w-40 bg-hema-700 hover:bg-hema-800 active:bg-hema-900 active:scale-95 transition text-white font-semibold py-2 px-4 rounded "
-                type="submit"
-            >
-                "Guardar"
-            </button>
+                </Transition>
+                <button
+                    class="max-w-40 bg-hema-700 hover:bg-hema-800 active:bg-hema-900 active:scale-95 transition text-white font-semibold py-2 px-4 rounded"
+                    type="submit"
+                >
+                    "Guardar"
+                </button>
+            </div>
         </ActionForm>
     }
 }
@@ -324,33 +303,33 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
     let materials = OnceResource::new(get_all_materials());
     view! {
         <Suspense fallback=|| {
-            view! { "hola" }
+            view! { <p>"Cargando…"</p> }
         }>
             {move || Suspend::new(async move {
                 let doctors = doctors.await.unwrap();
                 let materials = materials.await.unwrap();
                 view! {
-                    <div class="flex flex-col max-w-lg ">
-                        <label for="protocolo">
-                            "Protocolo"
+                    <div class="flex flex-col gap-4">
+                        <label class="flex flex-col gap-1">
+                            <span class="text-sm font-semibold text-slate-700">"Protocolo"</span>
                             <input
-                                class=" border border-slate-400 px-3 py-2 rounded-md w-full"
+                                class="border border-slate-400 px-3 py-2 rounded-md w-full"
                                 type="text"
                                 id="protocolo"
                                 name="study[parent][protocolo]"
                             />
                         </label>
-                        <label for="fecha">
-                            "Fecha"
+                        <label class="flex flex-col gap-1">
+                            <span class="text-sm font-semibold text-slate-700">"Fecha"</span>
                             <input
-                                class=" border border-slate-400 px-3 py-2 rounded-md w-full"
+                                class="border border-slate-400 px-3 py-2 rounded-md w-full"
                                 type="datetime-local"
                                 id="fecha"
                                 name="study[parent][fecha]"
                             />
                         </label>
-                        <label for="paciente">
-                            "Paciente"
+                        <label class="flex flex-col gap-1">
+                            <span class="text-sm font-semibold text-slate-700">"Paciente"</span>
                             <input
                                 class="border border-slate-400 px-3 py-2 rounded-md w-full"
                                 type="text"
@@ -358,9 +337,8 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
                                 name="study[parent][paciente]"
                             />
                         </label>
-
-                        <label for="doctor">
-                            "Doctor"
+                        <label class="flex flex-col gap-1">
+                            <span class="text-sm font-semibold text-slate-700">"Doctor"</span>
                             <select
                                 id="doctor-id"
                                 class="border border-slate-400 px-3 py-2 rounded-md w-full"
@@ -386,8 +364,8 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
                                     .collect_view()}
                             </select>
                         </label>
-                        <label for="material">
-                            "Material"
+                        <label class="flex flex-col gap-1">
+                            <span class="text-sm font-semibold text-slate-700">"Material"</span>
                             <select
                                 class="border border-slate-400 px-3 py-2 rounded-md w-full"
                                 id="material-id"
@@ -409,10 +387,11 @@ pub fn ReportHeader(tipo: RwSignal<StudyTypeDto>) -> impl IntoView {
                                     .collect_view()}
                             </select>
                         </label>
-                        <label for="tipo">
-                            "Tipo" <div class="flex items-center gap-2">
+                        <label class="flex flex-col gap-1">
+                            <span class="text-sm font-semibold text-slate-700">"Tipo"</span>
+                            <div class="flex items-center gap-2">
                                 <select
-                                    class="border-b-slate-700 border border-slate-400 px-3 py-2 rounded-md w-full"
+                                    class="border border-slate-400 px-3 py-2 rounded-md w-full"
                                     id="tipo"
                                     name="study[parent][tipo]"
                                     on:change:target=move |ev| {
@@ -449,11 +428,28 @@ pub fn Histopatologia() -> impl IntoView {
     query_map_to_field!(descripcion_macroscopica, diagnostico_histopatologico);
 
     view! {
-        {html_and_suggestions!(
-            "study[child][Histopatologia]";
-            (descripcion_macroscopica, ReportFieldsDto::Histopatologia(HistoFields::DescripcionMacroscopica)),
-            (diagnostico_histopatologico, ReportFieldsDto::Histopatologia(HistoFields::DiagnosticoHistopatologico)),
-        )}
+        <div class="flex flex-col gap-4">
+            <label class="flex flex-col gap-1">
+                <span class="text-sm font-semibold text-slate-700">"Descripción macroscópica"</span>
+                <SuggestInput
+                    field=ReportFieldsDto::Histopatologia(HistoFields::DescripcionMacroscopica)
+                    id="descripcion_macroscopica"
+                    name="study[child][Histopatologia][descripcion_macroscopica]"
+                    value=descripcion_macroscopica
+                />
+            </label>
+            <label class="flex flex-col gap-1">
+                <span class="text-sm font-semibold text-slate-700">
+                    "Diagnóstico histopatológico"
+                </span>
+                <SuggestInput
+                    field=ReportFieldsDto::Histopatologia(HistoFields::DiagnosticoHistopatologico)
+                    id="diagnostico_histopatologico"
+                    name="study[child][Histopatologia][diagnostico_histopatologico]"
+                    value=diagnostico_histopatologico
+                />
+            </label>
+        </div>
     }
 }
 
@@ -472,17 +468,88 @@ pub fn Citologias() -> impl IntoView {
         diag_citologias
     );
     view! {
-        {html_and_suggestions!(
-            "study[child][Citologia]";
-            (microflora, ReportFieldsDto::Citologia(CitoFields::Microflora)),
-            (leucocitos, ReportFieldsDto::Citologia(CitoFields::Leucocitos)),
-            (celulas_pavimentosas, ReportFieldsDto::Citologia(CitoFields::CelulasPavimentosas)),
-            (celulas_metaplasicas, ReportFieldsDto::Citologia(CitoFields::CelulasMetaplasicas)),
-            (hematies, ReportFieldsDto::Citologia(CitoFields::Hematies)),
-            (celulas_endocervicales, ReportFieldsDto::Citologia(CitoFields::CelulasEndocervicales)),
-            (compatible_con, ReportFieldsDto::Citologia(CitoFields::CompatibleCon)),
-            (sugerencia, ReportFieldsDto::Citologia(CitoFields::Sugerencia)),
-            (diag_citologias, ReportFieldsDto::Citologia(CitoFields::DiagCitologias)),
-        )}
+        <div class="flex flex-col gap-4">
+            <label class="flex flex-col gap-1">
+                <span class="text-sm font-semibold text-slate-700">"Microflora"</span>
+                <SuggestInput
+                    field=ReportFieldsDto::Citologia(CitoFields::Microflora)
+                    id="microflora"
+                    name="study[child][Citologia][microflora]"
+                    value=microflora
+                />
+            </label>
+            <label class="flex flex-col gap-1">
+                <span class="text-sm font-semibold text-slate-700">"Leucocitos"</span>
+                <SuggestInput
+                    field=ReportFieldsDto::Citologia(CitoFields::Leucocitos)
+                    id="leucocitos"
+                    name="study[child][Citologia][leucocitos]"
+                    value=leucocitos
+                />
+            </label>
+            <label class="flex flex-col gap-1">
+                <span class="text-sm font-semibold text-slate-700">"Células pavimentosas"</span>
+                <SuggestInput
+                    field=ReportFieldsDto::Citologia(CitoFields::CelulasPavimentosas)
+                    id="celulas_pavimentosas"
+                    name="study[child][Citologia][celulas_pavimentosas]"
+                    value=celulas_pavimentosas
+                />
+            </label>
+            <label class="flex flex-col gap-1">
+                <span class="text-sm font-semibold text-slate-700">"Células metaplásicas"</span>
+                <SuggestInput
+                    field=ReportFieldsDto::Citologia(CitoFields::CelulasMetaplasicas)
+                    id="celulas_metaplasicas"
+                    name="study[child][Citologia][celulas_metaplasicas]"
+                    value=celulas_metaplasicas
+                />
+            </label>
+            <label class="flex flex-col gap-1">
+                <span class="text-sm font-semibold text-slate-700">"Hematíes"</span>
+                <SuggestInput
+                    field=ReportFieldsDto::Citologia(CitoFields::Hematies)
+                    id="hematies"
+                    name="study[child][Citologia][hematies]"
+                    value=hematies
+                />
+            </label>
+            <label class="flex flex-col gap-1">
+                <span class="text-sm font-semibold text-slate-700">"Células endocervicales"</span>
+                <SuggestInput
+                    field=ReportFieldsDto::Citologia(CitoFields::CelulasEndocervicales)
+                    id="celulas_endocervicales"
+                    name="study[child][Citologia][celulas_endocervicales]"
+                    value=celulas_endocervicales
+                />
+            </label>
+            <label class="flex flex-col gap-1">
+                <span class="text-sm font-semibold text-slate-700">"Compatible con"</span>
+                <SuggestInput
+                    field=ReportFieldsDto::Citologia(CitoFields::CompatibleCon)
+                    id="compatible_con"
+                    name="study[child][Citologia][compatible_con]"
+                    value=compatible_con
+                />
+            </label>
+            <label class="flex flex-col gap-1">
+                <span class="text-sm font-semibold text-slate-700">"Sugerencia"</span>
+                <SuggestInput
+                    field=ReportFieldsDto::Citologia(CitoFields::Sugerencia)
+                    id="sugerencia"
+                    name="study[child][Citologia][sugerencia]"
+                    value=sugerencia
+                />
+            </label>
+            <label class="flex flex-col gap-1">
+                <span class="text-sm font-semibold text-slate-700">"Diagnóstico citológico"</span>
+                <SuggestInput
+                    field=ReportFieldsDto::Citologia(CitoFields::DiagCitologias)
+                    id="diag_citologias"
+                    name="study[child][Citologia][diag_citologias]"
+                    value=diag_citologias
+                />
+            </label>
+        </div>
     }
 }

@@ -8,11 +8,14 @@
 
 use std::io::{self, BufRead, Write};
 
-use patologias_rs::core::config::model::Config;
-use patologias_rs::core::database::connection::get_connection_pool;
-use patologias_rs::users::dto::{NewUserDto, RoleDto};
-use patologias_rs::users::repository::{SessionRepository, UserRepository};
-use patologias_rs::users::service::UserService;
+use patologias_rs::{
+    core::{config::model::Config, database::connection::get_connection_pool},
+    users::{
+        dto::{NewUserDto, RoleDto},
+        repository::{SessionRepository, UserRepository},
+        service::UserService,
+    },
+};
 
 const MIN_PASSWORD_LEN: usize = 8;
 
