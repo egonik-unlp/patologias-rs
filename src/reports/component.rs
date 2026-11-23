@@ -1,7 +1,7 @@
 use crate::{
     entities::server::{get_all_doctors, get_all_materials},
     frontend::{
-        icons::{IconCitologia, IconHistopatologia},
+        icons::{IconCitologia, IconCopy, IconEdit, IconHistopatologia, IconTrash},
         suggestions::SuggestInput,
     },
     reports::{
@@ -209,9 +209,29 @@ impl From<FullStudyDto> for ReportRowFields {
 }
 
 #[component]
+fn ReportButtons() -> impl IntoView {
+    view! {
+        <div class="border-[0.5] border-slate-500 inline-flex text-xs">
+            <button class=" flex gap-0.5 rounded-3xl max-w-60 bg-hema-700 hover:bg-hema-800 active:bg-hema-900 active:scale-95 transition text-white  py-2 px-4  ">
+                <span>"Delete"</span>
+                <IconTrash />
+            </button>
+            <button class=" flex gap-0.5 rounded-3xl  max-w-40 bg-hema-700 hover:bg-hema-800 active:bg-hema-900 active:scale-95 transition text-white  py-2 px-4  ">
+                <span>"Edit"</span>
+                <IconEdit />
+            </button>
+            <button class=" flex gap-0.5 rounded-3xl  max-w-40 bg-hema-700 hover:bg-hema-800 active:bg-hema-900 active:scale-95 transition text-white  py-2 px-4   ">
+                <span>"Copy"</span>
+                <IconCopy />
+            </button>
+        </div>
+    }
+}
+
+#[component]
 fn ReportTable(reports: Vec<FullStudyDto>) -> impl IntoView {
     view! {
-        <div class="flex flex-col px-4 py-2 gap-4 max-w-2xl mx-auto border border-slate-500 bg-white rounded-lg shadow">
+        <div class="flex flex-col px-4 py-2 gap-4 max-w-3xl mx-auto border border-slate-500 bg-white rounded-lg shadow">
             <table>
                 <thead>
                     <tr>
@@ -219,6 +239,7 @@ fn ReportTable(reports: Vec<FullStudyDto>) -> impl IntoView {
                         <th>Fecha</th>
                         <th>Paciente</th>
                         <th>Tipo</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -227,9 +248,9 @@ fn ReportTable(reports: Vec<FullStudyDto>) -> impl IntoView {
                         .into_iter()
                         .rev()
                         .take(20)
-                        .map(|node| {
-                            let local_node = node.clone();
-                            let table_node: ReportRowFields = node.into();
+                        .map(|report| {
+                            let local_node = report.clone();
+                            let table_node: ReportRowFields = report.into();
                             view! {
                                 <tr>
                                     <td>
@@ -249,6 +270,9 @@ fn ReportTable(reports: Vec<FullStudyDto>) -> impl IntoView {
                                             {format!("{:?}", table_node.tipo)}
                                         </span>
                                     </td>
+                                    <td>
+                                        <ReportButtons />
+                                    </td>
                                 </tr>
                             }
                         })
@@ -265,18 +289,14 @@ pub fn CreateReport() -> impl IntoView {
     let create: ServerAction<CreateStudy> = ServerAction::<CreateStudy>::new();
     let tipo = RwSignal::new(StudyTypeDto::Citologia);
     #[allow(unused_variables)]
-    let value: MappedSignal<Option<Result<(), ServerFnError>>> = create.value();
+    let value: MappedSignal<Option<Result<FullStudyDto, ServerFnError>>> = create.value();
     view! {
         <ActionForm action=create>
             <div class="max-w-4xl mx-auto flex flex-col gap-6">
-                // Needed if SuggestInput reads a Resource; harmless if it doesn't.
                 <Transition fallback=|| view! { <p>"Cargando…"</p> }>
-                    // Header fields on the left, type-specific fields on the right
-                    // (one column on phones). Each side is a single grid child.
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <ReportHeader tipo=tipo />
 
-                        // child fields: inputs inside these are named study[child][<Variant>][...]
                         {move || match tipo.get() {
                             StudyTypeDto::Histopatologia => view! { <Histopatologia /> }.into_any(),
                             StudyTypeDto::Citologia => view! { <Citologias /> }.into_any(),
@@ -289,6 +309,25 @@ pub fn CreateReport() -> impl IntoView {
                 >
                     "Guardar"
                 </button>
+                {move || match value.get() {
+                    None => view! {}.into_any(),
+                    Some(Ok(v)) => {
+                        view! {
+                            <p class=" rounded-md border px-3 py-2 text-sm bg-green-50 border-green-200 text-green-700">
+                                {format!("Report {} created", v.parent.protocolo)}
+                            </p>
+                        }
+                            .into_any()
+                    }
+                    Some(Err(e)) => {
+                        view! {
+                            <p class=" rounded-md border px-3 py-2 text-sm bg-green-50 border-green-200 text-green-700">
+                                {format!("Error creating report {}", e)}
+                            </p>
+                        }
+                            .into_any()
+                    }
+                }}
             </div>
         </ActionForm>
     }
@@ -430,7 +469,9 @@ pub fn Histopatologia() -> impl IntoView {
     view! {
         <div class="flex flex-col gap-4">
             <label class="flex flex-col gap-1">
-                <span class="text-sm font-semibold text-slate-700">"Descripción macroscópica"</span>
+                <span class="text-sm font-semibold text-slate-700">
+                    "Descripción macroscópica"
+                </span>
                 <SuggestInput
                     field=ReportFieldsDto::Histopatologia(HistoFields::DescripcionMacroscopica)
                     id="descripcion_macroscopica"

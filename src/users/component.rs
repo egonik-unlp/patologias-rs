@@ -84,7 +84,7 @@ pub fn CreateUser() -> impl IntoView {
 
 #[component]
 pub fn LoginUser() -> impl IntoView {
-    let action: ServerAction<LoginUser> = ServerAction::new();
+    let action: ServerAction<LoginUser> = expect_context();
     let value: MappedSignal<Option<Result<UserDto, _>>> = action.value();
     view! {
         <ActionForm action>
@@ -119,8 +119,8 @@ pub fn LoginUser() -> impl IntoView {
                     Some(Ok(user)) => {
                         view! {
                             <p class=" rounded-md border px-3 py-2 text-sm bg-green-50 border-green-200 text-green-700">
-                                    {format!("Sesión iniciada como {}", user.username)}
-                                </p>
+                                {format!("Sesión iniciada como {}", user.username)}
+                            </p>
                         }
                             .into_any()
                     }
@@ -158,11 +158,11 @@ pub fn HandleLogin() -> impl IntoView {
 
 #[component]
 pub fn LogoutUser() -> impl IntoView {
-    let logout: ServerAction<LogoutUser> = ServerAction::<LogoutUser>::new();
-    let value: MappedSignal<Option<Result<(), _>>> = logout.value();
+    let action: ServerAction<LogoutUser> = expect_context();
+    let value: MappedSignal<Option<Result<(), _>>> = action.value();
     view! {
         <div>
-            <ActionForm action=logout>
+            <ActionForm action>
                 <button
                     class="inline-flex items-center gap-1.5 px-2 py-1 rounded font-semibold border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
                     type="submit"
@@ -173,9 +173,15 @@ pub fn LogoutUser() -> impl IntoView {
             </ActionForm>
             <p>
                 {move || match value.get() {
-                    None => String::new(),
-                    Some(Ok(_)) => "Usuario deslogueado".into(),
-                    Some(Err(error)) => format!("Error {}", error),
+                    Some(Err(error)) => {
+                        view! {
+                            <p class="rounded-md border px-3 py-2 text-sm bg-red-50 border-red-200 text-red-700">
+                                format!("Error {}", error)
+                            </p>
+                        }
+                            .into_any()
+                    }
+                    _ => view! {}.into_any(),
                 }}
             </p>
         </div>
@@ -184,22 +190,30 @@ pub fn LogoutUser() -> impl IntoView {
 
 #[component]
 pub fn CurrentUser() -> impl IntoView {
-    let resource: OnceResource<Result<Option<UserDto>, _>> = OnceResource::new(get_current_user());
+    let login: ServerAction<LoginUser> = expect_context();
+    let logout: ServerAction<LogoutUser> = expect_context();
+    let resource: Resource<Result<Option<UserDto>, _>> = Resource::new(
+        move || (login.version().get(), logout.version().get()),
+        |_| get_current_user(),
+    );
     view! {
         <Suspense fallback=|| {
             view! { <p>"…"</p> }
         }>
             {move || Suspend::new(async move {
                 match resource.await {
-                    Ok(Some(user)) => view! {
-                        <div class="flex items-center justify-between">
-                            <div class="flex flex-col">
-                                <p class="font-semibold text-sm">{user.username}</p>
-                                <p class="text-xs">{user.full_name}</p>
+                    Ok(Some(user)) => {
+                        view! {
+                            <div class="flex items-center justify-between">
+                                <div class="flex flex-col">
+                                    <p class="font-semibold text-sm">{user.username}</p>
+                                    <p class="text-xs">{user.full_name}</p>
+                                </div>
+                                <LogoutUser />
                             </div>
-                            <LogoutUser />
-                        </div>
-                    }.into_any(),
+                        }
+                            .into_any()
+                    }
                     Ok(None) => view! { <p>"Not logged in"</p> }.into_any(),
                     Err(e) => view! { <p>{format!("Error: {e}")}</p> }.into_any(),
                 }

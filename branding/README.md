@@ -46,7 +46,8 @@ taking a `class` (e.g. `<IconHouse class="size-5" />`). All are decorative (`ari
 next to text that names them.
 
 - From **Lucide v0.460.0** (lucide-static, ISC license, notice in `icons.rs`): house, file-plus, files,
-  user-plus, log-out, search, printer (`IconPrint`), pencil (`IconEdit`).
+  user-plus, log-out, search, printer (`IconPrint`), pencil (`IconEdit`), trash-2 (`IconTrash`),
+  copy (`IconCopy`).
 - Original to this project: `IconSpecimenJar`, `IconCitologia` (squamous cell),
   `IconHistopatologia` (glass slide with a tissue section).
 

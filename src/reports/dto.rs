@@ -36,6 +36,7 @@ pub struct NewStudyDto {
     pub material_id: i32,
     pub tipo: StudyTypeDto,
 }
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum StudyDetailDto {
     Histopatologia(HistopatologiaDto),

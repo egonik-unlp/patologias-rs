@@ -4,6 +4,7 @@ use crate::frontend::icons::{
 };
 use crate::reports::component::{CreateReport, Report, Reports};
 use crate::users::component::{CreateUser, CurrentUser, HandleLogin, LoginUser};
+use crate::users::server::{LoginUser, LogoutUser};
 
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
@@ -40,6 +41,12 @@ pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context();
 
+    // TODO: Si estos son los unicos, se puede dejar asi, si no capaz convenga en pensar en alguna
+    // resolución un poquito más elegante
+    let action: ServerAction<LoginUser> = ServerAction::new();
+    let logout: ServerAction<LogoutUser> = ServerAction::<LogoutUser>::new();
+    provide_context(action);
+    provide_context(logout);
     view! {
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
@@ -75,6 +82,7 @@ pub fn App() -> impl IntoView {
                 </a>
                 <div class="flex-1"></div>
                 <div class="py-4 border-t border-slate-200">
+
                     <CurrentUser />
                 </div>
             </aside>
