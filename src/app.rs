@@ -2,10 +2,10 @@ use crate::entities::component::Entities;
 use crate::frontend::icons::{
     BrandMark, IconFilePlus, IconFiles, IconHouse, IconSpecimenJar, IconUserPlus,
 };
-use crate::reports::component::{CreateReport, Report, Reports};
+use crate::reports::component::{CreateReport, Report, Reports, UpdateReport};
+use crate::reports::server::{DeleteStudy, UpdateStudy};
 use crate::users::component::{CreateUser, CurrentUser, HandleLogin, LoginUser};
 use crate::users::server::{LoginUser, LogoutUser};
-
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
 use leptos_router::path;
@@ -44,9 +44,13 @@ pub fn App() -> impl IntoView {
     // TODO: Si estos son los unicos, se puede dejar asi, si no capaz convenga en pensar en alguna
     // resolución un poquito más elegante
     let action: ServerAction<LoginUser> = ServerAction::new();
-    let logout: ServerAction<LogoutUser> = ServerAction::<LogoutUser>::new();
+    let logout: ServerAction<LogoutUser> = ServerAction::new();
+    let delete_action: ServerAction<DeleteStudy> = ServerAction::new();
+    let update_action: ServerAction<UpdateStudy> = ServerAction::new();
     provide_context(action);
     provide_context(logout);
+    provide_context(delete_action);
+    provide_context(update_action);
     view! {
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
@@ -93,6 +97,7 @@ pub fn App() -> impl IntoView {
                         <Route path=StaticSegment("") view=HandleLogin />
                         <Route path=path!("/reports") view=Reports />
                         <Route path=path!("/reports/:id") view=Report />
+                        <Route path=path!("/reports/:id/edit") view=UpdateReport />
                         <Route path=path!("/create_report") view=CreateReport />
                         <Route path=path!("/entities") view=Entities />
                         <Route path=path!("/create_user") view=CreateUser />

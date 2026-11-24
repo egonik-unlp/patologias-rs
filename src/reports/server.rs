@@ -20,6 +20,8 @@ pub async fn read_all() -> Result<Vec<FullStudyDto>, ServerFnError> {
 
 #[server]
 pub async fn read_report(id: i32) -> Result<FullStudyDto, ServerFnError> {
+    use crate::users::server::require_admin;
+    require_admin().await?;
     use crate::entrypoint::application_state::AppState;
 
     let ctx = use_context::<AppState>().unwrap();
@@ -73,4 +75,27 @@ pub async fn create_study(study: NewFullStudyDto) -> Result<FullStudyDto, Server
         .await
         .map_err(ServerFnError::new)
         .map(FullStudyDto::from)
+}
+
+#[server]
+pub async fn delete_study(study_id: i32) -> Result<(), ServerFnError> {
+    use crate::entrypoint::application_state::AppState;
+    let ctx = use_context::<AppState>().expect("Appstate unavailable");
+    ctx.reports_service
+        .delete_study(study_id)
+        .await
+        .map_err(ServerFnError::new)
+}
+
+#[server]
+pub async fn update_study(
+    study: NewFullStudyDto,
+    study_id: i32,
+) -> Result<FullStudyDto, ServerFnError> {
+    use crate::entrypoint::application_state::AppState;
+    let ctx = expect_context::<AppState>();
+    ctx.reports_service
+        .update_study(study, study_id)
+        .await
+        .map_err(ServerFnError::new)
 }

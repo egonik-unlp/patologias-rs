@@ -6,7 +6,7 @@ use crate::{
     },
     impl_repository,
     reports::{
-        dto::{CitoFields, HistoFields, ReportFieldsDto, StudyDto},
+        dto::{CitoFields, HistoFields, PaginatedResponseDto, ReportFieldsDto, StudyDto},
         model::{
             Citologia, Histopatologia, NewCitologia, NewHistopatologia, NewStudy, Study, StudyType,
         },
@@ -82,5 +82,9 @@ impl StudyRepository {
                 .map(|val| val.into_iter().map(Into::into).collect())
         })
         .await
+    }
+    pub async fn get_shallow_paginated(&self, offset: i32) -> anyhow::Result<PaginatedResponseDto> {
+        _ = offset;
+        todo!()
     }
 }

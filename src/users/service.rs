@@ -108,6 +108,12 @@ impl UserService {
             None => bail!("No valid session for user:{}", token),
         }
     }
+    pub async fn get_all(&self) -> anyhow::Result<Vec<UserDto>> {
+        self.users
+            .read_all()
+            .await
+            .map(|res| res.into_iter().map(UserDto::from).collect())
+    }
 }
 
 fn generate_session_token() -> Result<String, getrandom::Error> {

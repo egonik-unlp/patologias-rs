@@ -17,7 +17,16 @@ pub async fn create_user(user: NewUserDto, password: String) -> Result<UserDto, 
         .map_err(ServerFnError::new)
         .map(UserDto::from)
 }
-
+#[server]
+pub async fn get_all_users() -> Result<Vec<UserDto>, ServerFnError> {
+    use crate::entrypoint::application_state::AppState;
+    require_user().await?;
+    let ctx = expect_context::<AppState>();
+    ctx.users_service
+        .get_all()
+        .await
+        .map_err(ServerFnError::new)
+}
 #[server]
 pub async fn login_user(user_name: String, password: String) -> Result<UserDto, ServerFnError> {
     use crate::entrypoint::application_state::AppState;
@@ -110,6 +119,20 @@ pub async fn get_current_user() -> Result<Option<UserDto>, ServerFnError> {
 pub async fn require_user() -> Result<UserDto, ServerFnError> {
     match get_current_user().await? {
         Some(user) => Ok(user),
+        None => {
+            leptos_axum::redirect("/login");
+            Err(ServerFnError::new("No autenticado"))
+        }
+    }
+}
+
+#[cfg(feature = "ssr")]
+pub async fn require_admin() -> Result<UserDto, ServerFnError> {
+    use crate::users::dto::RoleDto;
+
+    match get_current_user().await? {
+        Some(user) if matches!(user.role, RoleDto::Admin) => Ok(user),
+        Some(_) => Err(ServerFnError::new("Not admin")),
         None => {
             leptos_axum::redirect("/login");
             Err(ServerFnError::new("No autenticado"))

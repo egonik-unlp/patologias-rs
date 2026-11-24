@@ -15,7 +15,7 @@ pub struct NewFullStudyDto {
     pub child: StudyDetailDto,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct StudyDto {
     pub id: i32,
     pub protocolo: String,
@@ -43,9 +43,10 @@ pub enum StudyDetailDto {
     Citologia(CitologiaDto),
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub enum StudyTypeDto {
     Histopatologia,
+    #[default]
     Citologia,
 }
 
@@ -66,8 +67,20 @@ fn de_fecha<'de, D: serde::Deserializer<'de>>(d: D) -> Result<NaiveDateTime, D::
         .inspect_err(|error| println!("Parsing error: {}", error))
         .map_err(serde::de::Error::custom)
 }
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct CitologiaDto {
+    pub microflora: String,
+    pub celulas_pavimentosas: String,
+    pub celulas_metaplasicas: String,
+    pub leucocitos: String,
+    pub hematies: String,
+    pub celulas_endocervicales: String,
+    pub compatible_con: String,
+    pub sugerencia: String,
+    pub diag_citologias: String,
+}
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct NewCitologiaDto {
     pub microflora: Option<String>,
     pub celulas_pavimentosas: Option<String>,
     pub celulas_metaplasicas: Option<String>,
@@ -79,8 +92,14 @@ pub struct CitologiaDto {
     pub diag_citologias: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
 pub struct HistopatologiaDto {
+    pub descripcion_macroscopica: String,
+    pub diagnostico_histopatologico: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct NewHistopatologiaDto {
     pub descripcion_macroscopica: Option<String>,
     pub diagnostico_histopatologico: Option<String>,
 }
@@ -123,4 +142,11 @@ impl FromStr for StudyTypeDto {
             _ => Err(ParseReportTypeError),
         }
     }
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct PaginatedResponseDto {
+    reports: Vec<FullStudyDto>,
+    offset: usize,
+    total: usize,
 }

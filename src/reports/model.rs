@@ -221,15 +221,15 @@ impl From<Parts> for FullStudyDto {
                     ..
                 } = cito;
                 StudyDetailDto::Citologia(CitologiaDto {
-                    microflora,
-                    celulas_pavimentosas,
-                    celulas_metaplasicas,
-                    leucocitos,
-                    hematies,
-                    celulas_endocervicales,
-                    compatible_con,
-                    sugerencia,
-                    diag_citologias,
+                    microflora: microflora.unwrap_or_default(),
+                    celulas_pavimentosas: celulas_pavimentosas.unwrap_or_default(),
+                    celulas_metaplasicas: celulas_metaplasicas.unwrap_or_default(),
+                    leucocitos: leucocitos.unwrap_or_default(),
+                    hematies: hematies.unwrap_or_default(),
+                    celulas_endocervicales: celulas_endocervicales.unwrap_or_default(),
+                    compatible_con: compatible_con.unwrap_or_default(),
+                    sugerencia: sugerencia.unwrap_or_default(),
+                    diag_citologias: diag_citologias.unwrap_or_default(),
                 })
             }
             StudyDetail::Histopatologia(histo) => {
@@ -239,8 +239,8 @@ impl From<Parts> for FullStudyDto {
                     ..
                 } = histo;
                 StudyDetailDto::Histopatologia(HistopatologiaDto {
-                    descripcion_macroscopica,
-                    diagnostico_histopatologico,
+                    descripcion_macroscopica: descripcion_macroscopica.unwrap_or_default(),
+                    diagnostico_histopatologico: diagnostico_histopatologico.unwrap_or_default(),
                 })
             }
         };
@@ -270,8 +270,8 @@ impl From<HistopatologiaDto> for NewHistopatologia {
             diagnostico_histopatologico,
         } = value;
         Self {
-            descripcion_macroscopica,
-            diagnostico_histopatologico,
+            descripcion_macroscopica: Some(descripcion_macroscopica),
+            diagnostico_histopatologico: Some(diagnostico_histopatologico),
         }
     }
 }
@@ -290,15 +290,15 @@ impl From<CitologiaDto> for NewCitologia {
             diag_citologias,
         } = value;
         Self {
-            microflora,
-            celulas_pavimentosas,
-            celulas_metaplasicas,
-            leucocitos,
-            hematies,
-            celulas_endocervicales,
-            compatible_con,
-            sugerencia,
-            diag_citologias,
+            microflora: Some(microflora),
+            celulas_pavimentosas: Some(celulas_pavimentosas),
+            celulas_metaplasicas: Some(celulas_metaplasicas),
+            leucocitos: Some(leucocitos),
+            hematies: Some(hematies),
+            celulas_endocervicales: Some(celulas_endocervicales),
+            compatible_con: Some(compatible_con),
+            sugerencia: Some(sugerencia),
+            diag_citologias: Some(diag_citologias),
         }
     }
 }

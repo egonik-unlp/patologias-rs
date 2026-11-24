@@ -35,4 +35,18 @@ impl ReportsService {
     pub async fn get_report_by_id(&self, id: i32) -> anyhow::Result<FullStudyDto> {
         self.repo.read(id).await.map(FullStudyDto::from)
     }
+    pub async fn delete_study(&self, id: i32) -> anyhow::Result<()> {
+        self.repo.delete(id).await
+    }
+    pub async fn update_study(
+        &self,
+        update: NewFullStudyDto,
+        id: i32,
+    ) -> anyhow::Result<FullStudyDto> {
+        let (study, child) = update.into_parts();
+        self.repo
+            .update(id, study, child)
+            .await
+            .map(FullStudyDto::from)
+    }
 }

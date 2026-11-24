@@ -1,4 +1,5 @@
 use crate::frontend::icons::IconLogOut;
+use crate::users::server::get_all_users;
 use crate::users::{
     dto::UserDto,
     server::{get_current_user, CreateUser, LoginUser, LogoutUser},
@@ -82,6 +83,12 @@ pub fn CreateUser() -> impl IntoView {
     }
 }
 
+//TODO: Finish component. Ojo que () satisface impl IntoView
+#[component]
+pub fn UserList() -> impl IntoView {
+    #[allow(unused_variables)]
+    let resource = OnceResource::new(get_all_users());
+}
 #[component]
 pub fn LoginUser() -> impl IntoView {
     let action: ServerAction<LoginUser> = expect_context();
@@ -173,10 +180,10 @@ pub fn LogoutUser() -> impl IntoView {
             </ActionForm>
             <p>
                 {move || match value.get() {
-                    Some(Err(error)) => {
+                    Some(Err(err)) => {
                         view! {
                             <p class="rounded-md border px-3 py-2 text-sm bg-red-50 border-red-200 text-red-700">
-                                format!("Error {}", error)
+                                {format!("Error {}", err)}
                             </p>
                         }
                             .into_any()
