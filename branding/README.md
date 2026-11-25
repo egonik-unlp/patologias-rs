@@ -17,6 +17,13 @@ most in a Pap smear. It's colored the way H&E stains tissue: pink (eosin) cytopl
 The same geometry is drawn in Rust as `BrandMark` in `src/frontend/icons.rs`. **Change both
 together.**
 
+## The empty field (404)
+
+`empty-field.svg` is the brand mark's field of view with the cell missing: only a dashed ghost of
+where it should be, a few specks and the eyepiece's measuring scale. It's the 404 illustration, drawn
+in Rust as `EmptyField` in `src/frontend/icons.rs` (change both together). It uses hema shades only,
+no eosin, because it's UI, not the mark.
+
 ## Palette
 
 Defined as Tailwind theme colors in `style/tailwind.css` (`@theme`).
@@ -47,7 +54,7 @@ next to text that names them.
 
 - From **Lucide v0.460.0** (lucide-static, ISC license, notice in `icons.rs`): house, file-plus, files,
   user-plus, log-out, search, printer (`IconPrint`), pencil (`IconEdit`), trash-2 (`IconTrash`),
-  copy (`IconCopy`).
+  copy (`IconCopy`), arrow-left (`IconArrowLeft`).
 - Original to this project: `IconSpecimenJar`, `IconCitologia` (squamous cell),
   `IconHistopatologia` (glass slide with a tissue section).
 

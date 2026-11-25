@@ -2,6 +2,7 @@ use crate::entities::component::Entities;
 use crate::frontend::icons::{
     BrandMark, IconFilePlus, IconFiles, IconHouse, IconSpecimenJar, IconUserPlus,
 };
+use crate::frontend::notfound::NotFound;
 use crate::reports::component::{CreateReport, Report, Reports, UpdateReport};
 use crate::reports::server::{DeleteStudy, UpdateStudy};
 use crate::users::component::{CreateUser, CurrentUser, HandleLogin, LoginUser};
@@ -93,7 +94,7 @@ pub fn App() -> impl IntoView {
             // content for this welcome page
             <Router>
                 <main class="mt-10">
-                    <Routes fallback=|| "Page not found.".into_view()>
+                    <Routes fallback=|| view! { <NotFound/>}>
                         <Route path=StaticSegment("") view=HandleLogin />
                         <Route path=path!("/reports") view=Reports />
                         <Route path=path!("/reports/:id") view=Report />

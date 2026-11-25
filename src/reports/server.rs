@@ -1,6 +1,8 @@
 use crate::{
     frontend::suggestions::Suggestions,
-    reports::dto::{FullStudyDto, NewFullStudyDto, ReportFieldsDto, StudyDto},
+    reports::dto::{
+        FullStudyDto, NewFullStudyDto, PaginatedResponseDto, ReportFieldsDto, StudyDto,
+    },
 };
 use leptos::prelude::*;
 use std::future::Future;
@@ -96,6 +98,16 @@ pub async fn update_study(
     let ctx = expect_context::<AppState>();
     ctx.reports_service
         .update_study(study, study_id)
+        .await
+        .map_err(ServerFnError::new)
+}
+
+#[server]
+pub async fn read_report_page(page: i64) -> Result<PaginatedResponseDto, ServerFnError> {
+    use crate::entrypoint::application_state::AppState;
+    let ctx = expect_context::<AppState>();
+    ctx.reports_service
+        .read_studies_paginated(page)
         .await
         .map_err(ServerFnError::new)
 }

@@ -1,3 +1,7 @@
+use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
+
+//TODO: This eventually goes.
+use crate::reports::LIMIT;
 use crate::{
     core::database::{
         connection::{interact, interact_with_connection},
@@ -83,8 +87,18 @@ impl StudyRepository {
         })
         .await
     }
-    pub async fn get_shallow_paginated(&self, offset: i32) -> anyhow::Result<PaginatedResponseDto> {
-        _ = offset;
-        todo!()
+    pub async fn get_shallow_paginated(&self, offset: i64) -> anyhow::Result<(Vec<Study>, i64)> {
+        let repo = self.clone();
+        interact(&repo.pool, move |conn| {
+            let count: Result<i64, _> = studies::table.count().get_result(conn).map_err(Into::into);
+            let page: Result<Vec<Study>, _> = studies::table
+                .order_by(studies::created_at.desc())
+                .offset(offset)
+                .limit(LIMIT)
+                .load(conn)
+                .map_err(Into::into);
+            page.and_then(|p| count.map(|c| (p, c)))
+        })
+        .await
     }
 }

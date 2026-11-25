@@ -12,3 +12,5 @@ pub mod service;
 pub mod render;
 
 pub mod component;
+
+const LIMIT: i64 = 20;

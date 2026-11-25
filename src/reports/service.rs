@@ -1,7 +1,12 @@
+use std::ops::Mul;
+
 use crate::core::database::repository::AsyncLayerWithHierarchy;
-use crate::reports::dto::{FullStudyDto, NewFullStudyDto, ReportFieldsDto, StudyDto};
+use crate::reports::dto::{
+    FullStudyDto, NewFullStudyDto, PaginatedResponseDto, ReportFieldsDto, StudyDto,
+};
 use crate::reports::model::Study;
 use crate::reports::repository::{StudyDetail, StudyRepository};
+use crate::reports::LIMIT;
 
 #[derive(Debug, Clone)]
 pub struct ReportsService {
@@ -48,5 +53,12 @@ impl ReportsService {
             .update(id, study, child)
             .await
             .map(FullStudyDto::from)
+    }
+    pub async fn read_studies_paginated(&self, page: i64) -> anyhow::Result<PaginatedResponseDto> {
+        let offset = (page - 1).mul(LIMIT);
+        self.repo
+            .get_shallow_paginated(offset)
+            .await
+            .map(|(page, total)| PaginatedResponseDto::new(page, offset, total))
     }
 }

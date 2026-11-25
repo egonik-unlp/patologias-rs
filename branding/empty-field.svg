@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160">
+  <!-- Empty microscope field for the 404 page: the brand mark's field with the cell missing.
+       Same geometry as `EmptyField` in src/frontend/icons.rs: change both together.
+       Colors: hema-900 #4b2e83, hema-50 #f7f5ff, hema-100 #eeeafe, hema-300 #c6b7f7, hema-400 #a88fec -->
+  <!-- eyepiece edge -->
+  <circle cx="80" cy="80" r="78" fill="#4b2e83" />
+  <!-- illuminated field -->
+  <circle cx="80" cy="80" r="66" fill="#f7f5ff" />
+  <!-- ocular micrometer: the measuring scale seen through the eyepiece -->
+  <path
+    d="M50 128H110M50 122V128M56 125V128M62 125V128M68 125V128M74 125V128M80 122V128M86 125V128M92 125V128M98 125V128M104 125V128M110 122V128"
+    fill="none" stroke="#c6b7f7" stroke-width="1.5" stroke-linecap="round" />
+  <!-- debris: a few specks, so the field reads as "looked, found nothing" -->
+  <g fill="#c6b7f7">
+    <circle cx="40" cy="104" r="2" />
+    <circle cx="124" cy="100" r="1.5" />
+    <circle cx="118" cy="42" r="2.5" />
+    <circle cx="38" cy="58" r="1.5" />
+    <circle cx="58" cy="34" r="1.5" />
+  </g>
+  <!-- ghost of the missing cell: the brand mark's cell scaled x3.8 about its center, dashed -->
+  <g stroke="#a88fec" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="5 6">
+    <path d="M53.4 65.6 L76.2 48.1 L102.8 53.4 L114.2 77.7 L101.3 105.8 L70.9 111.9 L49.6 92.2 Z" fill="#eeeafe" />
+    <circle cx="82.3" cy="80" r="11.8" fill="none" />
+  </g>
+</svg>

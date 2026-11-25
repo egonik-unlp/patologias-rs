@@ -146,7 +146,22 @@ impl FromStr for StudyTypeDto {
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct PaginatedResponseDto {
-    reports: Vec<FullStudyDto>,
-    offset: usize,
-    total: usize,
+    pub reports: Vec<StudyDto>,
+    pub offset: i64,
+    pub total: i64,
+}
+
+impl PaginatedResponseDto {
+    pub fn new(
+        reports: impl IntoIterator<Item = impl Into<StudyDto>>,
+        offset: i64,
+        total: i64,
+    ) -> Self {
+        let reports = reports.into_iter().map(Into::into).collect();
+        PaginatedResponseDto {
+            reports,
+            offset,
+            total,
+        }
+    }
 }

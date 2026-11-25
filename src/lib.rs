@@ -1,3 +1,4 @@
+#![feature(int_roundings)]
 pub mod app;
 #[cfg(feature = "ssr")]
 pub mod core;

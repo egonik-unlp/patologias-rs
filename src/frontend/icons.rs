@@ -4,7 +4,7 @@
 //! draw with `currentColor`, so color them with `text-*` and size them with `size-*` on `class`.
 //!
 //! IconHouse, IconFilePlus, IconFiles, IconUserPlus, IconLogOut, IconSearch, IconPrint, IconEdit,
-//! IconTrash and IconCopy use path data from Lucide (lucide-static v0.460.0, https://lucide.dev), under this license:
+//! IconTrash, IconCopy and IconArrowLeft use path data from Lucide (lucide-static v0.460.0, https://lucide.dev), under this license:
 //!
 //! ISC License
 //!
@@ -22,7 +22,8 @@
 //! NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
 //! OF THIS SOFTWARE.
 //!
-//! IconSpecimenJar, IconCitologia, IconHistopatologia and BrandMark are original to this project.
+//! IconSpecimenJar, IconCitologia, IconHistopatologia, BrandMark and EmptyField are original to this
+//! project.
 
 use leptos::prelude::*;
 
@@ -40,6 +41,47 @@ pub fn BrandMark(#[prop(into, optional)] class: String) -> impl IntoView {
                 stroke-linejoin="round"
             />
             <circle cx="16.6" cy="16" r="3.1" class="fill-hema-900" />
+        </svg>
+    }
+}
+
+/// 404 illustration: the brand mark's field of view with the cell missing. Only a dashed ghost of
+/// the cell is left, plus a few specks and the eyepiece's measuring scale. Colors are fixed (it's
+/// art, not an icon); size it with `size-*` or `w-*` on `class`. Same geometry as
+/// `branding/empty-field.svg`: change both together.
+#[component]
+pub fn EmptyField(#[prop(into, optional)] class: String) -> impl IntoView {
+    view! {
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" aria-hidden="true" class=class>
+            <circle cx="80" cy="80" r="78" class="fill-hema-900" />
+            <circle cx="80" cy="80" r="66" class="fill-hema-50" />
+            <path
+                d="M50 128H110M50 122V128M56 125V128M62 125V128M68 125V128M74 125V128M80 122V128M86 125V128M92 125V128M98 125V128M104 125V128M110 122V128"
+                fill="none"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                class="stroke-hema-300"
+            />
+            <g class="fill-hema-300">
+                <circle cx="40" cy="104" r="2" />
+                <circle cx="124" cy="100" r="1.5" />
+                <circle cx="118" cy="42" r="2.5" />
+                <circle cx="38" cy="58" r="1.5" />
+                <circle cx="58" cy="34" r="1.5" />
+            </g>
+            <g
+                stroke-width="2.5"
+                stroke-linejoin="round"
+                stroke-linecap="round"
+                stroke-dasharray="5 6"
+                class="stroke-hema-400"
+            >
+                <path
+                    d="M53.4 65.6 L76.2 48.1 L102.8 53.4 L114.2 77.7 L101.3 105.8 L70.9 111.9 L49.6 92.2 Z"
+                    class="fill-hema-100"
+                />
+                <circle cx="82.3" cy="80" r="11.8" fill="none" />
+            </g>
         </svg>
     }
 }
@@ -156,6 +198,14 @@ stroke_icon! {
     IconCopy {
         <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
         <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+    }
+}
+
+stroke_icon! {
+    /// Lucide `arrow-left`. For "back" links (e.g. the 404 page's way home).
+    IconArrowLeft {
+        <path d="m12 19-7-7 7-7" />
+        <path d="M19 12H5" />
     }
 }
 

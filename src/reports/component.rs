@@ -2,14 +2,16 @@ use crate::{
     entities::server::{get_all_doctors, get_all_materials},
     frontend::{
         icons::{IconCitologia, IconCopy, IconEdit, IconHistopatologia, IconTrash},
+        notfound::NotFound,
         suggestions::SuggestInput,
     },
     reports::{
         dto::{
             CitoFields, CitologiaDto, FullStudyDto, HistoFields, HistopatologiaDto,
-            ReportFieldsDto, StudyDetailDto, StudyDto, StudyTypeDto,
+            PaginatedResponseDto, ReportFieldsDto, StudyDetailDto, StudyDto, StudyTypeDto,
         },
-        server::{read_all, read_report, CreateStudy, DeleteStudy, UpdateStudy},
+        server::{read_all, read_report, read_report_page, CreateStudy, DeleteStudy, UpdateStudy},
+        LIMIT,
     },
 };
 use std::str::FromStr;
@@ -17,7 +19,7 @@ use std::str::FromStr;
 use anyhow::Result;
 use chrono::NaiveDateTime;
 use leptos::prelude::*;
-use leptos_router::hooks::use_params_map;
+use leptos_router::hooks::{use_params_map, use_query_map};
 
 #[macro_export]
 macro_rules! query_map_to_field {
@@ -32,47 +34,72 @@ macro_rules! query_map_to_field {
 #[component]
 pub fn Report() -> impl IntoView {
     let params = use_params_map();
-    let id = move || params.read().get("id").unwrap_or_default();
-    let id = id().parse::<i32>().expect("Blew up");
-    view! {
-        <Await future=read_report(id) let:data>
-            <ReportView report=data.clone().unwrap() />
-        </Await>
+    // Reactive: the router reuses this component when going /reports/1 -> /reports/2,
+    // so re-running on id change is what gives each report a fresh ReportView (and fresh signals).
+    let id = move || params.read().get("id").and_then(|s| s.parse::<i32>().ok());
+    move || {
+        id().map(|id| {
+            view! {
+                <Await future=read_report(id) let:data>
+                    // TODO: swap the error text for the NotFound page once it exists.
+                    {match data.clone() {
+                        Ok(report) => view! { <ReportView report /> }.into_any(),
+                        Err(_) => view! { <NotFound/> }.into_any(),
+                    }}
+                </Await>
+            }
+        })
     }
 }
 
 #[component]
 fn ReportView(report: FullStudyDto) -> impl IntoView {
     let delete_action: ServerAction<DeleteStudy> = expect_context();
-    //TODO: Hacer mostrar el resultado o algo, si no esto vuela
-    #[allow(unused_variables)]
     let value: MappedSignal<Option<Result<(), _>>> = delete_action.value();
     let delete_requested = RwSignal::new(false);
+    // The action lives in app context, so `value` still holds the previous delete's result
+    // when another report is opened. Only trust it if *this* view sent a delete.
+    let delete_sent = RwSignal::new(false);
+    let finished = move || delete_sent.get() && !delete_action.pending().get();
+    let deleted = move || finished() && matches!(value.get(), Some(Ok(())));
+    let delete_error = move || {
+        if !finished() {
+            return None;
+        }
+        match value.get() {
+            Some(Err(e)) => Some(e.to_string()),
+            _ => None,
+        }
+    };
     let FullStudyDto { parent, child } = report.clone();
     view! {
         <div class="flex flex-col px-4 py-4 gap-4  max-w-2xl mx-auto border border-slate-500 bg-white rounded-lg shadow">
             <ShowParent parent />
             <ShowChild child />
             <Show
+                when=deleted
+                fallback=move || view! {
+            {move || delete_error().map(|e| view! { <div>{format!("No se pudo borrar: {e}")}</div> })}
+            <Show
                 when=move || delete_requested.get()
                 fallback=move || {
                     view! {
                         <button
-                            on:click=move |_| { delete_requested.set(true) }
-
+                            on:click=move |_| delete_requested.set(true)
                             class=" flex gap-0.5 rounded-3xl max-w-60 bg-hema-700 hover:bg-hema-800 active:bg-hema-900 active:scale-95 transition text-white  py-2 px-4  "
-                        ></button>
+                        >
+                            <span>"Delete"</span>
+                            <IconTrash />
+                        </button>
                     }
                 }
             >
-
                 <div class="flex gap-1">
                     <button
                         on:click=move |_| {
-                            delete_action
-                                .dispatch(DeleteStudy {
-                                    study_id: report.parent.id,
-                                });
+                            delete_action.dispatch(DeleteStudy { study_id: report.parent.id });
+                            delete_sent.set(true);
+                            delete_requested.set(false);
                         }
                         class=" text-xs rounded-3xl max-w-40 bg-red-700 hover:bg-red-800 active:bg-red-900 active:scale-95 transition text-white  py-1 px-2  "
                     >
@@ -80,13 +107,15 @@ fn ReportView(report: FullStudyDto) -> impl IntoView {
                     </button>
                     <button
                         on:click=move |_| delete_requested.set(false)
-                        class=" text-xs rounded-3xl max-w-40 bg-red-700 hover:bg-red-800 active:bg-red-900 active:scale-95 transition text-white  py-1 px-2  "
+                        class=" text-xs rounded-3xl max-w-40 bg-red-700 hover:bg-red-800 active:bg-red-900 active:scale-95 transition text-white  py-4 px-2 min-h-3"
                     >
                         <span>"Cancelar"</span>
                     </button>
-
                 </div>
-
+            </Show>
+                }
+            >
+                <div>"Borradooooo"</div>
             </Show>
         </div>
     }
@@ -230,8 +259,20 @@ fn StudyTypeIcon(tipo: StudyTypeDto, #[prop(into, optional)] class: String) -> i
 #[component]
 pub fn Reports() -> impl IntoView {
     let delete_action: ServerAction<DeleteStudy> = expect_context();
-    let resource = Resource::new(move || delete_action.version().get(), |_| read_all());
+    let params = use_query_map();
+    let page = move || {
+        params
+            .read()
+            .get("page")
+            .and_then(|s| s.parse::<i64>().ok())
+            .unwrap_or(1)
+    };
+    let resource: Resource<Result<PaginatedResponseDto, _>> = Resource::new(
+        move || (page(), delete_action.version().get()),
+        |(page, _)| read_report_page(page),
+    );
     view! {
+        <div class="flex flex-col items-center gap-4">
         <h1 class="font-semibold text-3xl text-slate-700 mx-auto">Citologia Reports Table</h1>
         <Suspense fallback=|| {
             view! { <div>"Loading..."</div> }
@@ -240,12 +281,33 @@ pub fn Reports() -> impl IntoView {
                 resource
                     .get()
                     .map(|rec| match rec {
-                        Ok(reports) => view! { <ReportTable reports /> }.into_any(),
+                        Ok(reports) => view! {
+                <ReportTable reports=reports.reports />
+                    <Pager total=reports.total current=page()/>
+                }.into_any(),
                         Err(e) => view! { <div>{e.to_string()}</div> }.into_any(),
                     })
-            }}
+            }
+
+
+            }
         </Suspense>
+        </div>
     }
+}
+
+#[component]
+fn Pager(current: i64, total: i64) -> impl IntoView {
+    let next_url = format!("/reports?page={}", current + 1);
+    let prev_url = format!("/reports?page={}", (current - 1).max(1));
+    view! {
+            <div class="flex mx-auto text-lg text-slate-700 px-2 py-2 gap-1">
+    <a href=prev_url> "<" </a>
+                <span> {format!("{}/{}", current, total.div_ceil(LIMIT))} </span>
+                <span>  </span>
+    <a href=next_url> ">" </a>
+            </div>
+        }
 }
 
 #[derive(Debug, Clone)]
@@ -255,7 +317,23 @@ struct ReportRowFields {
     pub paciente: String,
     pub tipo: StudyTypeDto,
 }
-
+impl From<StudyDto> for ReportRowFields {
+    fn from(value: StudyDto) -> Self {
+        let StudyDto {
+            protocolo,
+            fecha,
+            paciente,
+            tipo,
+            ..
+        } = value;
+        Self {
+            protocolo,
+            fecha,
+            paciente,
+            tipo,
+        }
+    }
+}
 impl From<FullStudyDto> for ReportRowFields {
     fn from(value: FullStudyDto) -> Self {
         let FullStudyDto {
@@ -333,7 +411,7 @@ fn ReportButtons(report_id: i32, just_selected: RwSignal<i32>) -> impl IntoView 
 }
 
 #[component]
-fn ReportTable(reports: Vec<FullStudyDto>) -> impl IntoView {
+fn ReportTable(reports: Vec<StudyDto>) -> impl IntoView {
     let just_selected = RwSignal::new(0);
     view! {
         <div class="flex flex-col px-4 gap-4 max-w-3xl mx-auto border border-slate-500 bg-white rounded-lg shadow">
@@ -353,17 +431,17 @@ fn ReportTable(reports: Vec<FullStudyDto>) -> impl IntoView {
                         .into_iter()
                         .rev()
                         .take(20)
-                        .map(|report: FullStudyDto| {
+                        .map(|report: StudyDto| {
                             let local_node = report.clone();
                             let table_node: ReportRowFields = report.into();
                             // TODO: Esto está horrible, ver si se puede resolver mas elegantemente
                             //
                             view! {
-                                <tr id=format!("report-row-{}", local_node.parent.id)>
+                                <tr>
                                     <td>
                                         <a href=format!(
                                             "/reports/{}",
-                                            local_node.parent.id,
+                                            local_node.id,
                                         )>{table_node.protocolo}</a>
                                     </td>
                                     <td>{format!("{:?}", table_node.fecha)}</td>
@@ -379,7 +457,7 @@ fn ReportTable(reports: Vec<FullStudyDto>) -> impl IntoView {
                                     </td>
                                     <td>
                                         <ReportButtons
-                                            report_id=local_node.parent.id
+                                            report_id=local_node.id
                                             just_selected
                                         />
                                     </td>
