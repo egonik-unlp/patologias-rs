@@ -5,7 +5,7 @@ use crate::frontend::icons::{
 use crate::frontend::notfound::NotFound;
 use crate::reports::component::{CreateReport, Report, Reports, UpdateReport};
 use crate::reports::server::{DeleteStudy, UpdateStudy};
-use crate::users::component::{CreateUser, CurrentUser, HandleLogin, LoginUser};
+use crate::users::component::{CreateUser, CurrentUser, HandleLogin, LoginUser, UserList};
 use crate::users::server::{LoginUser, LogoutUser};
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, MetaTags, Stylesheet, Title};
@@ -85,6 +85,10 @@ pub fn App() -> impl IntoView {
                     <IconUserPlus class="size-5" />
                     "Create User"
                 </a>
+                <a href="/users" class="flex items-center gap-2">
+                    <IconFiles class="size-5" />
+                    "Users"
+                </a>
                 <div class="flex-1"></div>
                 <div class="py-4 border-t border-slate-200">
 
@@ -94,7 +98,7 @@ pub fn App() -> impl IntoView {
             // content for this welcome page
             <Router>
                 <main class="mt-10">
-                    <Routes fallback=|| view! { <NotFound/>}>
+                    <Routes fallback=|| view! { <NotFound /> }>
                         <Route path=StaticSegment("") view=HandleLogin />
                         <Route path=path!("/reports") view=Reports />
                         <Route path=path!("/reports/:id") view=Report />
@@ -103,6 +107,7 @@ pub fn App() -> impl IntoView {
                         <Route path=path!("/entities") view=Entities />
                         <Route path=path!("/create_user") view=CreateUser />
                         <Route path=path!("/login") view=LoginUser />
+                        <Route path=path!("/users") view=UserList />
                     </Routes>
                 </main>
             </Router>

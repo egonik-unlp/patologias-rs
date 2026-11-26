@@ -2,7 +2,7 @@ use axum::extract::FromRef;
 use leptos::config::LeptosOptions;
 
 use crate::{
-    core::database::connection::DbPool,
+    core::{config::model::Config, database::connection::DbPool},
     entities::{
         repository::{DoctorRepository, MaterialRepository},
         service::EntitiesService,
@@ -20,10 +20,11 @@ pub struct AppState {
     pub entities_service: EntitiesService,
     pub reports_service: ReportsService,
     pub users_service: UserService,
+    pub config: Config,
 }
 
 impl AppState {
-    pub fn new(pool: DbPool, leptos_options: LeptosOptions) -> Self {
+    pub fn new(pool: DbPool, leptos_options: LeptosOptions, config: Config) -> Self {
         let doctors_repository = DoctorRepository::new(pool.clone());
         let material_repository = MaterialRepository::new(pool.clone());
         let studies_repository = StudyRepository::new(pool.clone());
@@ -37,6 +38,7 @@ impl AppState {
             entities_service,
             reports_service,
             users_service,
+            config,
         }
     }
 }

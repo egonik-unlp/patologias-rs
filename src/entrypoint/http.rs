@@ -24,8 +24,8 @@ impl Application {
 
         let config = Config::from_env();
         println!("{:#?}", config.clone());
-        let connection = get_connection_pool(config.database_url);
-        let state = AppState::new(connection, leptos_options);
+        let connection = get_connection_pool(config.database_url.clone());
+        let state = AppState::new(connection, leptos_options, config);
 
         let app = Router::new()
             .leptos_routes_with_context(

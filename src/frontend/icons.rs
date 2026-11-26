@@ -52,7 +52,12 @@ pub fn BrandMark(#[prop(into, optional)] class: String) -> impl IntoView {
 #[component]
 pub fn EmptyField(#[prop(into, optional)] class: String) -> impl IntoView {
     view! {
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" aria-hidden="true" class=class>
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 160 160"
+            aria-hidden="true"
+            class=class
+        >
             <circle cx="80" cy="80" r="78" class="fill-hema-900" />
             <circle cx="80" cy="80" r="66" class="fill-hema-50" />
             <path

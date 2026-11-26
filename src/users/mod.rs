@@ -4,6 +4,8 @@ pub mod dto;
 pub mod model;
 #[cfg(feature = "ssr")]
 pub mod repository;
+#[cfg(feature = "ssr")]
+pub mod guard;
 pub mod server;
 #[cfg(feature = "ssr")]
 pub mod service;

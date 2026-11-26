@@ -11,7 +11,7 @@ use std::future::Future;
 pub async fn read_all() -> Result<Vec<FullStudyDto>, ServerFnError> {
     use crate::entrypoint::application_state::AppState;
 
-    crate::users::server::require_user().await?;
+    crate::users::guard::require_user().await?;
     let ctx = use_context::<AppState>().unwrap();
     ctx.reports_service
         .read_all_studies()
@@ -22,7 +22,7 @@ pub async fn read_all() -> Result<Vec<FullStudyDto>, ServerFnError> {
 
 #[server]
 pub async fn read_report(id: i32) -> Result<FullStudyDto, ServerFnError> {
-    use crate::users::server::require_admin;
+    use crate::users::guard::require_admin;
     require_admin().await?;
     use crate::entrypoint::application_state::AppState;
 
