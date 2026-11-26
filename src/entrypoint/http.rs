@@ -2,7 +2,10 @@ use std::net::SocketAddr;
 
 use crate::{
     app::*,
-    core::{config::model::Config, database::connection::get_connection_pool},
+    core::{
+        config::model::Config,
+        database::connection::{get_connection_pool, running_migration},
+    },
     entrypoint::application_state::AppState,
 };
 use axum::Router;
@@ -25,8 +28,8 @@ impl Application {
         let config = Config::from_env();
         println!("{:#?}", config.clone());
         let connection = get_connection_pool(config.database_url.clone());
+        running_migration(&connection);
         let state = AppState::new(connection, leptos_options, config);
-
         let app = Router::new()
             .leptos_routes_with_context(
                 &state,

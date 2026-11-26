@@ -6,6 +6,8 @@ use diesel::{
 use dotenvy::dotenv;
 use std::time::Duration;
 
+use crate::core::database::migrations::run_migrations;
+
 pub type DbPool = Pool<ConnectionManager<PgConnection>>;
 
 pub fn get_connection_pool(database_url: String) -> DbPool {
@@ -21,6 +23,11 @@ pub fn get_connection_pool(database_url: String) -> DbPool {
         .expect("Could not build connection pool")
 }
 
+pub fn running_migration(pool: &DbPool) {
+    println!("Running embedded migrations");
+    let mut conn = pool.get().expect("Can't get connection");
+    run_migrations(&mut conn)
+}
 pub async fn interact<F, T>(pool: &DbPool, f: F) -> anyhow::Result<T>
 where
     F: FnOnce(&mut PgConnection) -> anyhow::Result<T> + 'static + Send,

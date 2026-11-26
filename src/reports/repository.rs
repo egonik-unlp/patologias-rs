@@ -10,7 +10,7 @@ use crate::{
     },
     impl_repository,
     reports::{
-        dto::{CitoFields, HistoFields, PaginatedResponseDto, ReportFieldsDto, StudyDto},
+        dto::{CitoFields, HistoFields, ReportFieldsDto, StudyDto},
         model::{
             Citologia, Histopatologia, NewCitologia, NewHistopatologia, NewStudy, Study, StudyType,
         },
